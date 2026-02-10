@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>牛の繁殖カレンダー</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: #f6f7f9;
+    }
+    header {
+      background: #2f855a;
+      color: white;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .container {
+      padding: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    form {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+    form div {
+      margin-bottom: 8px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    button {
+      background: #2f855a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      opacity: 0.9;
+      cursor: pointer;
+    }
+    .cow-card {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .cow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .status {
+      font-size: 0.9rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .inseminated {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .pregnant {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .date-highlight {
+      font-weight: bold;
+      color: #c53030;
+    }
+    .small {
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>🐄 牛の繁殖カレンダー</header>
+  <div class="container">
+    <form id="cowForm">
+      <div>
+        <label>母牛の名前</label>
+        <input type="text" id="cowName" required />
+      </div>
+      <div>
+        <label>人工授精日</label>
+        <input type="date" id="inseminationDate" required />
+      </div>
+      <div>
+        <label>授精種雄牛の名前</label>
+        <input type="text" id="bullName" />
+      </div>
+      <button type="submit">登録</button>
+    </form>
+
+    <div id="cowList"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "cowCalendarData";
+
+    function loadCows() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    }
+
+    function saveCows(cows) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cows));
+    }
+
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function render() {
+      const list = document.getElementById("cowList");
+      list.innerHTML = "";
+      const cows = loadCows();
+
+      cows.forEach((cow, index) => {
+        const card = document.createElement("div");
+        card.className = "cow-card";
+
+        const nextHeat = addDays(cow.inseminationDate, 21);
+        const pregnancyCheck = addDays(cow.inseminationDate, 60);
+        const dueDate = addDays(cow.inseminationDate, 285);
+
+        let highlightLabel = "";
+        if (cow.status === "inseminated") {
+          highlightLabel = `<span class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span>`;
+        }
+        if (cow.status === "pregnant") {
+          highlightLabel = `<span class="date-highlight">分娩予定日: ${dueDate}</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="cow-header">
+            <div><strong>${cow.name}</strong> <span class="small">(${cow.bull})</span></div>
+            <select onchange="changeStatus(${index}, this.value)">
+              <option value="inseminated" ${cow.status === "inseminated" ? "selected" : ""}>授精済み</option>
+              <option value="pregnant" ${cow.status === "pregnant" ? "selected" : ""}>妊娠中</option>
+              <option value="open" ${cow.status === "open" ? "selected" : ""}>空胎</option>
+            </select>
+          </div>
+          <div class="small">人工授精日: ${cow.inseminationDate}</div>
+          <div class="small">次回発情予定日: ${nextHeat}</div>
+          <div class="small">空胎検査予定日: ${pregnancyCheck}</div>
+          <div class="small">分娩予定日: ${dueDate}</div>
+          <div>${highlightLabel}</div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function changeStatus(index, status) {
+      const cows = loadCows();
+      cows[index].status = status;
+      saveCows(cows);
+      render();
+    }
+
+    document.getElementById("cowForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const cow = {
+        name: cowName.value,
+        inseminationDate: inseminationDate.value,
+        bull: bullName.value,
+        status: "inseminated"
+      };
+      const cows = loadCows();
+      cows.push(cow);
+      saveCows(cows);
+      e.target.reset();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
