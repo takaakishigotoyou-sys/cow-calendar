@@ -81,7 +81,11 @@
     }
     .date-highlight {
       font-weight: bold;
-      color: #c53030;
+      color: #c53030; /* デフォルト（授精済み：妊娠鑑定日） */
+    }
+    .date-highlight-green {
+      font-weight: bold;
+      color: #2f855a; /* 分娩予定日：緑 */
     }
     .small {
       font-size: 0.9rem;
@@ -146,7 +150,7 @@
           highlightLabel = `<span class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span>`;
         }
         if (cow.status === "pregnant") {
-          highlightLabel = `<span class="date-highlight">分娩予定日: ${dueDate}</span>`;
+          highlightLabel = `<span class="date-highlight-green">分娩予定日: ${dueDate}</span>`;
         }
 
         card.innerHTML = `
@@ -194,3 +198,4 @@
   </script>
 </body>
 </html>
+
