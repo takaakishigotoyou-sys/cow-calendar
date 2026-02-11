@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>牛の繁殖カレンダー（改善版）</title>
+  <title>牛の繁殖カレンダー（ステータス連動版）</title>
   <style>
     :root{
       --bg:#f6f7f9;
@@ -63,8 +63,9 @@
       color: white;
       border: none;
       border-radius: 6px;
+      transition: background 0.2s;
     }
-    button:hover { opacity: 0.95; cursor: pointer; }
+    button:hover { opacity: 0.9; cursor: pointer; }
 
     .cow-card {
       background: var(--card-bg);
@@ -72,7 +73,12 @@
       padding: 12px;
       margin-bottom: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      border-left: 5px solid #ccc;
     }
+    .cow-card.status-inseminated { border-left-color: #f6ad55; }
+    .cow-card.status-pregnant { border-left-color: #48bb78; }
+    .cow-card.status-open { border-left-color: #a0aec0; }
+
     .cow-header {
       display: flex;
       justify-content: space-between;
@@ -84,33 +90,26 @@
       color: var(--muted);
     }
 
-    /* 強調ラベル（立体的） */
+    /* 強調ラベル */
     .date-highlight, .date-highlight-green {
       display: inline-block;
       padding: 6px 10px;
       border-radius: 10px;
       font-weight: 700;
-      font-size: 0.95rem;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.12), inset 0 -4px 8px rgba(0,0,0,0.06);
-      transform: translateY(-2px);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.25);
-      border: 1px solid rgba(0,0,0,0.06);
-      white-space: nowrap;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-right: 5px;
+      margin-top: 5px;
     }
-
     .date-highlight {
       color: #6b1b1b;
-      background: linear-gradient(180deg, #fff3cd 0%, #fee2d4 60%, #fef3c7 100%);
-      box-shadow: 0 10px 22px rgba(197,57,57,0.12), 0 2px 6px rgba(0,0,0,0.06);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-      border: 1px solid rgba(197,57,57,0.18);
+      background: #fff3cd;
+      border: 1px solid #fbd38d;
     }
     .date-highlight-green {
       color: #07372a;
-      background: linear-gradient(180deg, #d1fae5 0%, #bbf1d5 60%, #ecfdf5 100%);
-      box-shadow: 0 10px 22px rgba(44,115,72,0.12), 0 2px 6px rgba(0,0,0,0.06);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-      border: 1px solid rgba(34,138,82,0.15);
+      background: #d1fae5;
+      border: 1px solid #9ae6b4;
     }
 
     /* Calendar column */
@@ -151,60 +150,39 @@
       position:relative;
       box-shadow: 0 3px 8px rgba(0,0,0,0.04);
       cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease;
+      transition:transform .12s ease;
       overflow:hidden;
     }
-    .day-cell:hover{ transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+    .day-cell:hover{ transform: translateY(-3px); background: #fff; }
     .day-number {
       font-weight:700;
       font-size:0.95rem;
-      margin-bottom:6px;
     }
 
-    /* イベントバッジ（文字付き立体） */
     .event-badges {
       position:absolute;
-      right:8px;
-      bottom:8px;
+      right:4px;
+      bottom:4px;
       display:flex;
-      gap:6px;
+      gap:4px;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
     .badge {
-      min-width: 28px;
-      height: 18px;
-      padding: 0 6px;
-      border-radius: 10px;
-      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.65rem;
       font-weight: 700;
-      color: #222;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.18),
-                  inset 0 -3px 5px rgba(255,255,255,0.35);
-      cursor: pointer;
-      user-select: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    .badge.preg-check {
-      background: linear-gradient(180deg,#ffe5dc,#ffb3a3);
-      color:#7a1f1f;
-      border: 1px solid rgba(197,57,57,0.12);
-    }
-
-    .badge.due {
-      background: linear-gradient(180deg,#d1fae5,#7fd18a);
-      color:#065f46;
-      border: 1px solid rgba(34,138,82,0.11);
-    }
+    .badge.preg-check { background: #ffe5dc; color:#7a1f1f; }
+    .badge.due { background: #d1fae5; color:#065f46; }
 
     /* Modal */
     .modal-overlay {
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.5);
       display:none;
       align-items:center;
       justify-content:center;
@@ -214,50 +192,47 @@
     .modal {
       background: var(--card-bg);
       border-radius:12px;
-      padding:16px;
+      padding:20px;
       width:100%;
-      max-width:520px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.28);
-      max-height:80vh;
-      overflow:auto;
+      max-width:450px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    .modal h3 { margin-top:0; }
-    .modal .event-item {
-      padding:10px;
+    .event-item {
+      padding:12px;
       border-radius:8px;
-      margin-bottom:8px;
-      background: linear-gradient(180deg,#fff,#fbfbfb);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.05);
-      border:1px solid #f0f0f0;
+      margin-bottom:10px;
+      background: #f9fafb;
+      border:1px solid #edf2f7;
     }
-    .modal .meta { font-size:0.9rem; color:var(--muted); margin-top:6px; }
 
-    /* レスポンシブ */
     @media (max-width:1000px){
       .container{ grid-template-columns: 1fr; }
       .right-column{ order: -1; }
     }
-
   </style>
 </head>
 <body>
+
   <header>🐄 牛の繁殖カレンダー（改善版）</header>
+
   <div class="container">
     <div>
       <form id="cowForm">
-        <div>
-          <label>母牛の名前</label>
-          <input type="text" id="cowName" required />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+          <div>
+            <label>母牛の名前</label>
+            <input type="text" id="cowName" placeholder="例：はなこ" required />
+          </div>
+          <div>
+            <label>授精種雄牛</label>
+            <input type="text" id="bullName" placeholder="例：安福久" />
+          </div>
         </div>
-        <div>
+        <div style="margin-top:8px">
           <label>人工授精日</label>
           <input type="date" id="inseminationDate" required />
         </div>
-        <div>
-          <label>授精種雄牛の名前</label>
-          <input type="text" id="bullName" />
-        </div>
-        <button type="submit">登録</button>
+        <button type="submit" style="margin-top:12px">新規登録</button>
       </form>
 
       <div id="cowList"></div>
@@ -267,400 +242,269 @@
       <div class="calendar-card">
         <div class="cal-header">
           <div>
-            <button id="prevMonth" title="前の月">&lt;</button>
-            <button id="nextMonth" title="次の月">&gt;</button>
+            <button id="prevMonth" style="width:40px">&lt;</button>
+            <button id="nextMonth" style="width:40px">&gt;</button>
           </div>
           <div id="calTitle" style="font-weight:700"></div>
-          <div>
-            <button id="todayBtn">今日</button>
-          </div>
+          <button id="todayBtn" style="width:60px; font-size:0.8rem">今日</button>
         </div>
-        <div class="cal-grid" id="weekdayHeader">
-          <div class="weekday">日</div>
+        <div class="cal-grid">
+          <div class="weekday" style="color:red">日</div>
           <div class="weekday">月</div>
           <div class="weekday">火</div>
           <div class="weekday">水</div>
           <div class="weekday">木</div>
           <div class="weekday">金</div>
-          <div class="weekday">土</div>
+          <div class="weekday" style="color:blue">土</div>
         </div>
         <div class="cal-grid" id="calendarGrid"></div>
       </div>
 
       <div class="calendar-card small">
         <strong>凡例</strong>
-        <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
-          <div style="display:flex;gap:8px;align-items:center"><span class="badge preg-check" style="width:18px;height:18px;padding:0;border-radius:50%;"></span><span>妊娠鑑定予定</span></div>
-          <div style="display:flex;gap:8px;align-items:center"><span class="badge due" style="width:18px;height:18px;padding:0;border-radius:50%;"></span><span>分娩予定</span></div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <span><span class="badge preg-check">鑑定</span> 妊娠鑑定予定</span>
+          <span><span class="badge due">分娩</span> 分娩予定日</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- モーダル -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modal">
-      <button id="closeModal" style="float:right">閉じる</button>
-      <h3 id="modalDateTitle"></h3>
+    <div class="modal">
+      <h3 id="modalDateTitle" style="margin-top:0"></h3>
       <div id="modalEvents"></div>
+      <button id="closeModal" style="background:#718096; margin-top:10px">閉じる</button>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "cowCalendarData_v2";
+    const STORAGE_KEY = "cow_breeding_data_v3";
 
-    /* --- Utilities: 安全な日付処理 --- */
-    function parseYMD(ymd){
-      const [y,m,d] = String(ymd).split("-");
-      return new Date(Number(y), Number(m)-1, Number(d));
-    }
-    function formatYMD(date){
-      const y = date.getFullYear();
-      const m = String(date.getMonth()+1).padStart(2,"0");
-      const d = String(date.getDate()).padStart(2,"0");
-      return `${y}-${m}-${d}`;
-    }
-    function addDaysYMD(ymd, days){
-      const dt = parseYMD(ymd);
-      dt.setDate(dt.getDate() + days);
-      return formatYMD(dt);
-    }
+    // 日付計算ユーティリティ
+    const dateUtil = {
+      parse: (str) => new Date(str.replace(/-/g, '/')),
+      format: (dt) => {
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth()+1).padStart(2,'0');
+        const d = String(dt.getDate()).padStart(2,'0');
+        return `${y}-${m}-${d}`;
+      },
+      addDays: (str, days) => {
+        const d = dateUtil.parse(str);
+        d.setDate(d.getDate() + days);
+        return dateUtil.format(d);
+      }
+    };
 
-    /* --- storage --- */
-    function loadCows(){
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    }
-    function saveCows(cows){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cows));
-    }
+    // データ操作
+    function getCows() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    function saveCows(cows) { localStorage.setItem(STORAGE_KEY, JSON.stringify(cows)); }
 
-    /* --- イベント生成（牛データから） --- */
-    function eventsFromCows(){
-      const cows = loadCows();
+    // イベント生成ロジック（ステータスと連動）
+    function getEvents() {
+      const cows = getCows();
       const events = [];
       cows.forEach((cow, idx) => {
-        if (!cow.inseminationDate) return;
-        const pregCheck = addDaysYMD(cow.inseminationDate, 60);
-        const due = addDaysYMD(cow.inseminationDate, 285);
-        events.push({
-          date: pregCheck,
-          kind: "preg-check",
-          title: "妊娠鑑定予定",
-          cowIndex: idx,
-          cowName: cow.name,
-          bull: cow.bull,
-          inseminationDate: cow.inseminationDate,
-          status: cow.status
-        });
-        events.push({
-          date: due,
-          kind: "due",
-          title: "分娩予定",
-          cowIndex: idx,
-          cowName: cow.name,
-          bull: cow.bull,
-          inseminationDate: cow.inseminationDate,
-          status: cow.status
-        });
+        // 「空胎」の場合は予定を表示しない
+        if (cow.status === 'open') return;
+
+        // 授精済みの場合のみ「鑑定予定」を表示
+        if (cow.status === 'inseminated') {
+          events.push({
+            date: dateUtil.addDays(cow.inseminationDate, 60),
+            kind: 'preg-check',
+            title: '妊娠鑑定予定',
+            cowName: cow.name,
+            cowIndex: idx
+          });
+        }
+
+        // 「授精済み」または「妊娠中」なら「分娩予定」を表示
+        if (cow.status === 'inseminated' || cow.status === 'pregnant') {
+          events.push({
+            date: dateUtil.addDays(cow.inseminationDate, 285),
+            kind: 'due',
+            title: '分娩予定',
+            cowName: cow.name,
+            cowIndex: idx
+          });
+        }
       });
       return events;
     }
 
-    /* --- カレンダー --- */
-    let viewYear, viewMonth; // month: 0-11
-    function initCalendar(){
-      const today = new Date();
-      viewYear = today.getFullYear();
-      viewMonth = today.getMonth();
-      document.getElementById("prevMonth").addEventListener("click", ()=>{ changeMonth(-1); });
-      document.getElementById("nextMonth").addEventListener("click", ()=>{ changeMonth(1); });
-      document.getElementById("todayBtn").addEventListener("click", ()=>{ viewYear = new Date().getFullYear(); viewMonth = new Date().getMonth(); renderCalendar(); });
-      renderCalendar();
-    }
+    // カレンダー制御
+    let currentViewDate = new Date();
 
-    function changeMonth(delta){
-      viewMonth += delta;
-      if (viewMonth < 0){ viewMonth = 11; viewYear -= 1; }
-      if (viewMonth > 11){ viewMonth = 0; viewYear += 1; }
-      renderCalendar();
-    }
-
-    function renderCalendar(){
-      const calTitle = document.getElementById("calTitle");
+    function renderCalendar() {
       const grid = document.getElementById("calendarGrid");
+      const title = document.getElementById("calTitle");
       grid.innerHTML = "";
-      const monthStart = new Date(viewYear, viewMonth, 1);
-      const monthEnd = new Date(viewYear, viewMonth+1, 0);
-      calTitle.textContent = `${viewYear}年 ${viewMonth+1}月`;
 
-      // first day index (0=日)
-      const startIdx = monthStart.getDay();
-      const daysInMonth = monthEnd.getDate();
+      const y = currentViewDate.getFullYear();
+      const m = currentViewDate.getMonth();
+      title.textContent = `${y}年 ${m + 1}月`;
 
-      const events = eventsFromCows();
-      // map date -> array
-      const map = {};
-      events.forEach(ev => {
-        if (!map[ev.date]) map[ev.date] = [];
-        map[ev.date].push(ev);
-      });
+      const firstDay = new Date(y, m, 1).getDay();
+      const lastDate = new Date(y, m + 1, 0).getDate();
+      const events = getEvents();
 
-      // fill blanks before start
-      for (let i=0;i<startIdx;i++){
+      // 空白セル
+      for (let i = 0; i < firstDay; i++) {
         const blank = document.createElement("div");
         blank.className = "day-cell";
-        blank.style.opacity = "0.4";
-        blank.style.pointerEvents = "none";
+        blank.style.opacity = "0";
         grid.appendChild(blank);
       }
 
-      for (let day=1; day<=daysInMonth; day++){
-        const ymd = formatYMD(new Date(viewYear, viewMonth, day));
+      // 日付セル
+      for (let d = 1; d <= lastDate; d++) {
+        const dateStr = dateUtil.format(new Date(y, m, d));
         const cell = document.createElement("div");
         cell.className = "day-cell";
-        cell.dataset.ymd = ymd;
+        cell.innerHTML = `<div class="day-number">${d}</div>`;
 
-        const num = document.createElement("div");
-        num.className = "day-number";
-        num.textContent = day;
-        cell.appendChild(num);
-
-        // badges
-        const badgeContainer = document.createElement("div");
-        badgeContainer.className = "event-badges";
-        const evs = map[ymd] || [];
-        // show up to 3 badges
-        evs.slice(0,3).forEach(ev => {
-          const b = document.createElement("span");
-          b.className = "badge " + ev.kind;
-          b.textContent = ev.kind === "preg-check" ? "鑑定" : "分娩";
-
-          b.addEventListener("click", (e) => {
-            e.stopPropagation(); // 日付セルクリックを防ぐ
-            openEventModal(ev);
+        const dayEvents = events.filter(e => e.date === dateStr);
+        if (dayEvents.length > 0) {
+          const container = document.createElement("div");
+          container.className = "event-badges";
+          dayEvents.forEach(e => {
+            const span = document.createElement("span");
+            span.className = `badge ${e.kind}`;
+            span.textContent = e.kind === 'preg-check' ? '鑑定' : '分娩';
+            container.appendChild(span);
           });
+          cell.appendChild(container);
+        }
 
-          badgeContainer.appendChild(b);
-        });
-        if (evs.length>0) cell.appendChild(badgeContainer);
-
-        // click -> 日付モーダル表示（一覧）
-        cell.addEventListener("click", ()=> {
-          openModalForDate(ymd, evs);
-        });
-
+        cell.onclick = () => openModal(dateStr, dayEvents);
         grid.appendChild(cell);
       }
-
-      // fill trailing blanks to keep grid consistent (optional)
-      const totalCells = startIdx + daysInMonth;
-      const trailing = (7 - (totalCells % 7)) % 7;
-      for (let i=0;i<trailing;i++){
-        const blank = document.createElement("div");
-        blank.className = "day-cell";
-        blank.style.opacity = "0.4";
-        blank.style.pointerEvents = "none";
-        grid.appendChild(blank);
-      }
     }
 
-    /* --- モーダル --- */
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalEvents = document.getElementById("modalEvents");
-    const modalDateTitle = document.getElementById("modalDateTitle");
-    document.getElementById("closeModal").addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e)=>{ if(e.target===modalOverlay) closeModal(); });
+    // 牛リスト表示
+    function renderCowList() {
+      const listDiv = document.getElementById("cowList");
+      listDiv.innerHTML = "";
+      const cows = getCows();
 
-    function openModalForDate(ymd, evs){
-      modalDateTitle.textContent = `${ymd} のイベント`;
-      modalEvents.innerHTML = "";
-      if (!evs || evs.length===0){
-        modalEvents.innerHTML = `<div class="small">イベントはありません。</div>`;
-      } else {
-        evs.forEach(ev => {
-          const item = document.createElement("div");
-          item.className = "event-item";
-          const badge = ev.kind === "preg-check" ? `<span style="display:inline-block;vertical-align:middle;margin-right:8px;width:12px;height:12px;border-radius:50%;background:#ffb3a3;box-shadow:0 6px 12px rgba(0,0,0,0.12);"></span>` :
-                        `<span style="display:inline-block;vertical-align:middle;margin-right:8px;width:12px;height:12px;border-radius:50%;background:#7fd18a;box-shadow:0 6px 12px rgba(0,0,0,0.12);"></span>`;
-          item.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><strong>${ev.title}</strong> ${badge}</div>
-              <div class="small">牛: ${ev.cowName}</div>
-            </div>
-            <div class="meta">人工授精日: ${ev.inseminationDate} ・ 雄牛: ${ev.bull || '—'} ・ ステータス: ${ev.status}</div>
-            <div style="margin-top:8px">
-              <button onclick="openEventModalFromIndex(${ev.cowIndex}, '${ev.date}', '${ev.kind.replace("'","\'" )}')">詳細／操作</button>
-            </div>
-          `;
-          modalEvents.appendChild(item);
-        });
-      }
-      modalOverlay.style.display = "flex";
-    }
-
-    function closeModal(){
-      modalOverlay.style.display = "none";
-    }
-
-    /* --- イベント専用モーダル（単一イベントの詳細＆操作） --- */
-    function openEventModal(ev){
-      // ev: object
-      const selHTML = `
-        <select id="eventStatusSelect">
-          <option value="inseminated" ${ev.status === 'inseminated' ? 'selected' : ''}>授精済み</option>
-          <option value="pregnant" ${ev.status === 'pregnant' ? 'selected' : ''}>妊娠中</option>
-          <option value="open" ${ev.status === 'open' ? 'selected' : ''}>空胎</option>
-        </select>
-      `;
-
-      modalDateTitle.textContent = `${ev.date} — ${ev.title}`;
-      modalEvents.innerHTML = `
-        <div class="event-item">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>${ev.title}</strong></div>
-            <div class="small">牛: ${ev.cowName}</div>
-          </div>
-          <div class="meta">人工授精日: ${ev.inseminationDate} ・ 雄牛: ${ev.bull || '—'}</div>
-          <div style="margin-top:10px">
-            <label><strong>ステータス変更</strong></label>
-            ${selHTML}
-            <div style="margin-top:8px;display:flex;gap:8px">
-              <button id="saveStatusBtn">保存</button>
-              <button id="gotoCowBtn">この牛の詳細を見る</button>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // save handler
-      setTimeout(()=>{
-        document.getElementById('saveStatusBtn').addEventListener('click', ()=>{
-          const newStatus = document.getElementById('eventStatusSelect').value;
-          updateCowStatus(ev.cowIndex, newStatus);
-          closeModal();
-        });
-        document.getElementById('gotoCowBtn').addEventListener('click', ()=>{
-          scrollToCow(ev.cowIndex);
-        });
-      }, 10);
-
-      modalOverlay.style.display = 'flex';
-    }
-
-    // helper used when opening from date-list -> pass cowIndex, date, kind
-    function openEventModalFromIndex(cowIndex, date, kind){
-      const cows = loadCows();
-      const cow = cows[cowIndex];
-      if(!cow) return alert('指定の牛が見つかりません');
-      const ev = {
-        date,
-        kind,
-        title: kind === 'preg-check' ? '妊娠鑑定予定' : '分娩予定',
-        cowIndex,
-        cowName: cow.name,
-        bull: cow.bull,
-        inseminationDate: cow.inseminationDate,
-        status: cow.status
-      };
-      openEventModal(ev);
-    }
-
-    function updateCowStatus(index, status){
-      const cows = loadCows();
-      if(!cows[index]) return;
-      cows[index].status = status;
-      saveCows(cows);
-      renderCowList();
-      renderCalendar();
-    }
-
-    /* --- 牛リスト描画 --- */
-    function renderCowList(){
-      const list = document.getElementById("cowList");
-      list.innerHTML = "";
-      const cows = loadCows();
-      cows.forEach((cow, index) => {
+      cows.forEach((cow, idx) => {
         const card = document.createElement("div");
-        card.className = "cow-card";
+        card.className = `cow-card status-${cow.status}`;
 
-        const nextHeat = addDaysYMD(cow.inseminationDate, 21);
-        const pregnancyCheck = addDaysYMD(cow.inseminationDate, 60);
-        const dueDate = addDaysYMD(cow.inseminationDate, 285);
+        const is_open = cow.status === 'open';
+        const pregDate = dateUtil.addDays(cow.inseminationDate, 60);
+        const dueDate = dateUtil.addDays(cow.inseminationDate, 285);
 
-        let highlightHTML = "";
-        if (cow.status === "inseminated") {
-          highlightHTML = `<span class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span>`;
-        } else if (cow.status === "pregnant") {
-          highlightHTML = `<span class="date-highlight-green">分娩予定日: ${dueDate}</span>`;
+        let statusLabels = "";
+        if (!is_open) {
+          if (cow.status === 'inseminated') {
+            statusLabels = `<span class="date-highlight">鑑定予定: ${pregDate}</span>
+                            <span class="date-highlight-green">分娩予定: ${dueDate}</span>`;
+          } else if (cow.status === 'pregnant') {
+            statusLabels = `<span class="date-highlight-green">分娩予定: ${dueDate}</span>`;
+          }
         } else {
-          highlightHTML = `<span style="opacity:0.85" class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span><span style="margin-left:8px;opacity:0.85" class="date-highlight-green">分娩予定日: ${dueDate}</span>`;
+          statusLabels = `<span class="small" style="color:#e53e3e">※空胎のため予定はありません</span>`;
         }
 
         card.innerHTML = `
           <div class="cow-header">
-            <div><strong>${cow.name}</strong> <span class="small">(${cow.bull || '—'})</span></div>
-            <select onchange="changeStatus(${index}, this.value)">
-              <option value="inseminated" ${cow.status === "inseminated" ? "selected" : ""}>授精済み</option>
-              <option value="pregnant" ${cow.status === "pregnant" ? "selected" : ""}>妊娠中</option>
-              <option value="open" ${cow.status === "open" ? "selected" : ""}>空胎</option>
+            <div><strong>${cow.name}</strong> <span class="small">(${cow.bull || '未設定'})</span></div>
+            <select style="width:120px; font-size:0.8rem" onchange="updateStatus(${idx}, this.value)">
+              <option value="inseminated" ${cow.status==='inseminated'?'selected':''}>授精済み</option>
+              <option value="pregnant" ${cow.status==='pregnant'?'selected':''}>妊娠中</option>
+              <option value="open" ${cow.status==='open'?'selected':''}>空胎</option>
             </select>
           </div>
           <div class="small">人工授精日: ${cow.inseminationDate}</div>
-          <div class="small">次回発情予定日: ${nextHeat}</div>
-          <div class="small">空胎検査予定日: ${pregnancyCheck}</div>
-          <div class="small">分娩予定日: ${dueDate}</div>
-          <div style="margin-top:8px">${highlightHTML}</div>
+          <div style="margin-top:8px">${statusLabels}</div>
+          <button onclick="deleteCow(${idx})" style="background:none; color:#e53e3e; font-size:0.7rem; width:auto; padding:0; margin-top:8px; border-bottom:1px solid">削除</button>
         `;
-        list.appendChild(card);
+        listDiv.appendChild(card);
       });
     }
 
-    function changeStatus(index, status){
-      const cows = loadCows();
-      cows[index].status = status;
+    // アクション
+    function updateStatus(idx, newStatus) {
+      const cows = getCows();
+      cows[idx].status = newStatus;
       saveCows(cows);
+      refreshUI();
+    }
+
+    function deleteCow(idx) {
+      if(!confirm("このデータを削除しますか？")) return;
+      const cows = getCows();
+      cows.splice(idx, 1);
+      saveCows(cows);
+      refreshUI();
+    }
+
+    function refreshUI() {
       renderCowList();
       renderCalendar();
     }
 
-    /* --- フォーム登録 --- */
-    document.getElementById("cowForm").addEventListener("submit", e => {
+    // フォーム送信
+    document.getElementById("cowForm").onsubmit = (e) => {
       e.preventDefault();
-      const name = document.getElementById("cowName").value.trim();
-      const inseminationDate = document.getElementById("inseminationDate").value;
-      const bull = document.getElementById("bullName").value.trim();
-      if (!name || !inseminationDate) return alert("名前と人工授精日は必須です。");
-      const cow = {
-        name,
-        inseminationDate,
-        bull,
-        status: "inseminated"
-      };
-      const cows = loadCows();
-      cows.push(cow);
+      const name = document.getElementById("cowName").value;
+      const date = document.getElementById("inseminationDate").value;
+      const bull = document.getElementById("bullName").value;
+      
+      const cows = getCows();
+      cows.push({ name, inseminationDate: date, bull, status: 'inseminated' });
       saveCows(cows);
+      
       e.target.reset();
-      renderCowList();
-      renderCalendar();
-    });
+      refreshUI();
+    };
 
-    /* --- スクロール＆強調 --- */
-    function scrollToCow(index){
-      const cards = document.querySelectorAll(".cow-card");
-      const card = cards[index];
-      if(!card) return;
-      closeModal();
-      card.scrollIntoView({behavior:"smooth",block:"center"});
-      const prev = card.style.boxShadow;
-      card.style.boxShadow = "0 0 0 4px #68d391";
-      setTimeout(()=>card.style.boxShadow = prev || "0 6px 18px rgba(0,0,0,0.06)" , 1500);
+    // モーダル制御
+    function openModal(dateStr, dayEvents) {
+      const overlay = document.getElementById("modalOverlay");
+      const title = document.getElementById("modalDateTitle");
+      const eventsDiv = document.getElementById("modalEvents");
+
+      title.textContent = dateStr;
+      eventsDiv.innerHTML = "";
+
+      if (dayEvents.length === 0) {
+        eventsDiv.innerHTML = "<p class='small'>予定はありません</p>";
+      } else {
+        dayEvents.forEach(ev => {
+          const div = document.createElement("div");
+          div.className = "event-item";
+          div.innerHTML = `
+            <strong>${ev.title}</strong><br>
+            <span class="small">対象牛: ${ev.cowName}</span>
+            <div style="margin-top:8px">
+              <label class="small">ステータス更新:</label>
+              <select onchange="updateStatus(${ev.cowIndex}, this.value); closeModal();">
+                <option value="inseminated">授精済み</option>
+                <option value="pregnant">妊娠中</option>
+                <option value="open">空胎に変更</option>
+              </select>
+            </div>
+          `;
+          eventsDiv.appendChild(div);
+        });
+      }
+      overlay.style.display = "flex";
     }
 
-    /* --- 初期化 --- */
-    initCalendar();
-    renderCowList();
+    function closeModal() { document.getElementById("modalOverlay").style.display = "none"; }
+    document.getElementById("closeModal").onclick = closeModal;
 
+    // カレンダーナビ
+    document.getElementById("prevMonth").onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth()-1); renderCalendar(); };
+    document.getElementById("nextMonth").onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth()+1); renderCalendar(); };
+    document.getElementById("todayBtn").onclick = () => { currentViewDate = new Date(); renderCalendar(); };
+
+    // 初期起動
+    refreshUI();
   </script>
 </body>
 </html>
-
