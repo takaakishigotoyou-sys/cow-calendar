@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>牛の繁殖カレンダー（改善版）</title>
+  <title>牛の繁殖カレンダー（洗練版）</title>
   <style>
     :root{
       --bg:#f6f7f9;
@@ -12,6 +12,8 @@
       --muted:#555;
       --accent-red: #c53030;
       --accent-green: #2f855a;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
     }
     *{box-sizing:border-box}
     body {
@@ -20,746 +22,1028 @@
       background: var(--bg);
       color:#222;
     }
+    
+    /* Header */
     header {
-      background: var(--primary);
+      background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
       color: white;
-      padding: 12px 16px;
-      text-align: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    .container {
       padding: 16px;
-      max-width: 1100px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(47,133,90,0.2);
+    }
+    header small {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: normal;
+      margin-top: 4px;
+      opacity: 0.9;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 420px;
+      grid-template-columns: 1fr 450px;
+      gap: 20px;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 16px;
     }
-    /* Form / list */
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      background: #f9fafb;
+      transition: transform 0.2s;
+    }
+    .stat-item:hover { transform: translateY(-2px); }
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Form */
     form {
       background: var(--card-bg);
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      transition: box-shadow 0.3s;
     }
-    form div { margin-bottom: 8px; }
+    form:hover { box-shadow: var(--shadow-hover); }
+    form h3 {
+      margin: 0 0 16px 0;
+      color: var(--primary);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    form div { margin-bottom: 12px; }
     label {
-      font-weight: bold;
+      font-weight: 600;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: #374151;
     }
     input, select, button {
       width: 100%;
-      padding: 8px;
+      padding: 10px 12px;
       font-size: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
       background: white;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(47,133,90,0.1);
     }
     button {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, #38a169 100%);
       color: white;
       border: none;
-      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
-    button:hover { opacity: 0.95; cursor: pointer; }
+    button:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(47,133,90,0.3);
+    }
+    button:active { transform: translateY(0); }
+
+    /* Cow Cards */
+    .cow-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .cow-list-header h3 {
+      margin: 0;
+      color: var(--primary);
+    }
+    .sort-btn {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .empty-state {
+      background: var(--card-bg);
+      padding: 60px 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    .empty-state h3 {
+      color: var(--muted);
+      margin: 0 0 8px 0;
+    }
+    .empty-state p {
+      color: #9ca3af;
+      margin: 0;
+    }
 
     .cow-card {
       background: var(--card-bg);
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 12px;
+      padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      border-left: 6px solid #ccc;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: slideIn 0.3s ease-out;
     }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .cow-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+    .cow-card.status-inseminated { border-left-color: #f6ad55; }
+    .cow-card.status-pregnant { border-left-color: #48bb78; }
+    .cow-card.status-open { border-left-color: #e53e3e; }
+
     .cow-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
+    .cow-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    .bull-name {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: #f3f4f6;
+      border-radius: 6px;
+    }
+    .status-select {
+      width: 130px;
+      font-size: 0.85rem;
+      padding: 6px 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .status-inseminated option:first-child { color: #f6ad55; }
+    .status-pregnant option:nth-child(2) { color: #48bb78; }
+    .status-open option:last-child { color: #e53e3e; }
+
     .small {
       font-size: 0.9rem;
       color: var(--muted);
     }
 
-    /* 強調ラベル（立体的） */
     .date-highlight, .date-highlight-green {
       display: inline-block;
-      padding: 6px 10px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.12), inset 0 -4px 8px rgba(0,0,0,0.06);
-      transform: translateY(-2px);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.25);
-      border: 1px solid rgba(0,0,0,0.06);
-      white-space: nowrap;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-right: 8px;
+      margin-top: 8px;
+      transition: transform 0.2s;
     }
-
+    .date-highlight:hover, .date-highlight-green:hover {
+      transform: scale(1.05);
+    }
     .date-highlight {
-      color: #6b1b1b;
-      background: linear-gradient(180deg, #fff3cd 0%, #fee2d4 60%, #fef3c7 100%);
-      box-shadow: 0 10px 22px rgba(197,57,57,0.12), 0 2px 6px rgba(0,0,0,0.06);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-      border: 1px solid rgba(197,57,57,0.18);
+      color: #92400e;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #fbbf24;
     }
     .date-highlight-green {
-      color: #07372a;
-      background: linear-gradient(180deg, #d1fae5 0%, #bbf1d5 60%, #ecfdf5 100%);
-      box-shadow: 0 10px 22px rgba(44,115,72,0.12), 0 2px 6px rgba(0,0,0,0.06);
-      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-      border: 1px solid rgba(34,138,82,0.15);
+      color: #065f46;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      border: 1px solid #6ee7b7;
     }
 
-    /* Calendar column */
+    .delete-btn {
+      background: none;
+      color: #ef4444;
+      font-size: 0.8rem;
+      width: auto;
+      padding: 6px 12px;
+      margin-top: 12px;
+      border: 2px solid #fecaca;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .delete-btn:hover {
+      background: #fef2f2;
+      border-color: #ef4444;
+      transform: none;
+    }
+
+    /* Calendar */
     .right-column {
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:16px;
     }
     .calendar-card {
       background: var(--card-bg);
-      padding:12px;
-      border-radius:8px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      padding:20px;
+      border-radius:12px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.3s;
     }
+    .calendar-card:hover { box-shadow: var(--shadow-hover); }
+    
     .cal-header {
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin-bottom:8px;
+      margin-bottom:16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f3f4f6;
     }
+    .cal-nav {
+      display: flex;
+      gap: 8px;
+    }
+    .cal-nav button {
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      padding: 0;
+      background: #f9fafb;
+      color: var(--primary);
+      border: 2px solid #e5e7eb;
+    }
+    .cal-nav button:hover {
+      background: var(--primary);
+      color: white;
+    }
+    #calTitle {
+      font-weight:700;
+      font-size: 1.1rem;
+      color: #1f2937;
+    }
+    #todayBtn {
+      width: 70px;
+      font-size: 0.85rem;
+      padding: 8px;
+      background: var(--primary);
+      color: white;
+    }
+
     .cal-grid {
       display:grid;
       grid-template-columns: repeat(7,1fr);
-      gap:6px;
+      gap:8px;
     }
     .weekday {
       text-align:center;
       font-weight:700;
       font-size:0.85rem;
-      padding:6px 4px;
-      color:#444;
+      padding:8px 4px;
+      color:#374151;
+      background: #f9fafb;
+      border-radius: 6px;
     }
+    .weekday.sun { color:#dc2626; }
+    .weekday.sat { color:#2563eb; }
+
     .day-cell {
-      min-height:84px;
+      min-height:90px;
       background:#fbfcfd;
-      border-radius:8px;
-      padding:8px;
+      border-radius:10px;
+      padding:10px;
       position:relative;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
       cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       overflow:hidden;
+      border: 2px solid transparent;
     }
-    .day-cell:hover{ transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+    .day-cell:hover{ 
+      transform: translateY(-4px);
+      background: #fff;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      border-color: var(--primary);
+    }
+    .day-cell.today {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-color: #3b82f6;
+      font-weight: bold;
+    }
+    .day-cell.has-events {
+      background: #fef3c7;
+    }
     .day-number {
       font-weight:700;
-      font-size:0.95rem;
-      margin-bottom:6px;
+      font-size:1rem;
+      color: #374151;
+    }
+    .day-cell.today .day-number {
+      color: #1e40af;
     }
 
-    /* イベントバッジ（文字付き立体） */
     .event-badges {
       position:absolute;
-      right:8px;
-      bottom:8px;
+      right:6px;
+      bottom:6px;
       display:flex;
-      gap:6px;
+      gap:4px;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
     .badge {
-      min-width: 28px;
-      height: 18px;
-      padding: 0 6px;
-      border-radius: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
       font-size: 0.7rem;
       font-weight: 700;
-      color: #222;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      animation: badgePop 0.3s ease-out;
+    }
+    @keyframes badgePop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .badge.preg-check { 
+      background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+      color:#7c2d12;
+    }
+    .badge.due { 
+      background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
+      color:#14532d;
+    }
+
+    /* Legend */
+    .legend-card {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .legend-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #1f2937;
+    }
+    .legend-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .legend-item {
       display: flex;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.18),
-                  inset 0 -3px 5px rgba(255,255,255,0.35);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .badge.preg-check {
-      background: linear-gradient(180deg,#ffe5dc,#ffb3a3);
-      color:#7a1f1f;
-      border: 1px solid rgba(197,57,57,0.12);
-    }
-
-    .badge.due {
-      background: linear-gradient(180deg,#d1fae5,#7fd18a);
-      color:#065f46;
-      border: 1px solid rgba(34,138,82,0.11);
+      gap: 10px;
+      font-size: 0.9rem;
     }
 
     /* Modal */
     .modal-overlay {
       position:fixed;
       inset:0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
       display:none;
       align-items:center;
       justify-content:center;
       z-index:1000;
-      padding:16px;
+      padding:20px;
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .modal {
       background: var(--card-bg);
-      border-radius:12px;
-      padding:16px;
+      border-radius:16px;
+      padding:28px;
       width:100%;
-      max-width:520px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.28);
-      max-height:80vh;
-      overflow:auto;
+      max-width:500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .modal h3 { margin-top:0; }
-    .modal .event-item {
-      padding:10px;
-      border-radius:8px;
-      margin-bottom:8px;
-      background: linear-gradient(180deg,#fff,#fbfbfb);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.05);
-      border:1px solid #f0f0f0;
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    .modal .meta { font-size:0.9rem; color:var(--muted); margin-top:6px; }
+    .modal h3 {
+      margin: 0 0 20px 0;
+      color: var(--primary);
+      font-size: 1.3rem;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+    .event-item {
+      padding:16px;
+      border-radius:10px;
+      margin-bottom:12px;
+      background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+      border:2px solid #e5e7eb;
+      transition: all 0.2s;
+    }
+    .event-item:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(47,133,90,0.1);
+    }
+    .event-item strong {
+      color: #1f2937;
+      font-size: 1.05rem;
+    }
+    .event-item select {
+      margin-top: 8px;
+    }
 
-    /* レスポンシブ */
-    @media (max-width:1000px){
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 2000;
+      animation: slideInRight 0.3s ease-out;
+      border-left: 5px solid var(--primary);
+    }
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .toast-icon {
+      font-size: 1.5rem;
+    }
+    .toast-message {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    /* Confirmation Dialog */
+    .confirm-dialog {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .confirm-content {
+      background: white;
+      padding: 28px;
+      border-radius: 16px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .confirm-content h3 {
+      margin: 0 0 12px 0;
+      color: #1f2937;
+      font-size: 1.2rem;
+    }
+    .confirm-content p {
+      margin: 0 0 24px 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    .confirm-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .confirm-buttons button {
+      flex: 1;
+    }
+    .cancel-btn {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .confirm-btn {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    }
+
+    @media (max-width:1100px){
       .container{ grid-template-columns: 1fr; }
       .right-column{ order: -1; }
     }
-
+    @media (max-width:600px){
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      form > div > div { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
-  <header>🐃牛の繁殖カレンダー🐃</header>
+
+  <header>
+    🐃牛の繁殖管理システム🐃
+    <small>人工授精から分娩まで一元管理</small>
+  </header>
+
   <div class="container">
     <div>
-      <form id="cowForm">
-        <div>
-          <label>母牛の名前</label>
-          <input type="text" id="cowName" required />
+      <!-- Statistics Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-number" id="totalCows">0</div>
+          <div class="stat-label">登録頭数</div>
         </div>
-        <div>
-          <label>人工授精日</label>
+        <div class="stat-item">
+          <div class="stat-number" id="inseminatedCount">0</div>
+          <div class="stat-label">授精済み</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="pregnantCount">0</div>
+          <div class="stat-label">妊娠中</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="openCount">0</div>
+          <div class="stat-label">空胎</div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="cowForm">
+        <h3>📝 新規登録</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+          <div>
+            <label>母牛の名前 *</label>
+            <input type="text" id="cowName" placeholder="例：はなこ" required />
+          </div>
+          <div>
+            <label>授精種雄牛</label>
+            <input type="text" id="bullName" placeholder="例：梅華福" />
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label>人工授精日 *</label>
           <input type="date" id="inseminationDate" required />
         </div>
-        <div>
-          <label>授精種雄牛の名前</label>
-          <input type="text" id="bullName" />
-        </div>
-        <button type="submit">登録</button>
+        <button type="submit" style="margin-top:16px">✓ 登録する</button>
       </form>
 
+      <!-- Cow List -->
+      <div class="cow-list-header">
+        <h3>📋 登録済み牛一覧</h3>
+      </div>
       <div id="cowList"></div>
     </div>
 
+    <!-- Right Column: Calendar -->
     <div class="right-column">
       <div class="calendar-card">
         <div class="cal-header">
-          <div>
-            <button id="prevMonth" title="前の月">&lt;</button>
-            <button id="nextMonth" title="次の月">&gt;</button>
+          <div class="cal-nav">
+            <button id="prevMonth" title="前月">‹</button>
+            <button id="nextMonth" title="次月">›</button>
           </div>
-          <div id="calTitle" style="font-weight:700"></div>
-          <div>
-            <button id="todayBtn">今日</button>
-          </div>
+          <div id="calTitle"></div>
+          <button id="todayBtn">今日</button>
         </div>
-        <div class="cal-grid" id="weekdayHeader">
-          <div class="weekday">日</div>
+        <div class="cal-grid">
+          <div class="weekday sun">日</div>
           <div class="weekday">月</div>
           <div class="weekday">火</div>
           <div class="weekday">水</div>
           <div class="weekday">木</div>
           <div class="weekday">金</div>
-          <div class="weekday">土</div>
+          <div class="weekday sat">土</div>
         </div>
         <div class="cal-grid" id="calendarGrid"></div>
       </div>
 
-      <div class="calendar-card small">
-        <strong>凡例</strong>
-        <div style="display:flex;gap:12px;margin-top:8px;align-items:center">
-          <div style="display:flex;gap:8px;align-items:center"><span class="badge preg-check" style="width:18px;height:18px;padding:0;border-radius:50%;"></span><span>妊娠鑑定予定</span></div>
-          <div style="display:flex;gap:8px;align-items:center"><span class="badge due" style="width:18px;height:18px;padding:0;border-radius:50%;"></span><span>分娩予定</span></div>
+      <div class="legend-card">
+        <div class="legend-title">📌 凡例</div>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="badge preg-check">鑑定</span>
+            <span>妊娠鑑定予定日（授精60日後）</span>
+          </div>
+          <div class="legend-item">
+            <span class="badge due">分娩</span>
+            <span>分娩予定日（授精285日後）</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- モーダル -->
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" id="modal">
-      <button id="closeModal" style="float:right">閉じる</button>
+    <div class="modal">
       <h3 id="modalDateTitle"></h3>
       <div id="modalEvents"></div>
+      <button id="closeModal" style="background:#6b7280; margin-top:16px">閉じる</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-message" id="toastMessage"></div>
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <div class="confirm-dialog" id="confirmDialog">
+    <div class="confirm-content">
+      <h3>⚠️ 確認</h3>
+      <p id="confirmMessage"></p>
+      <div class="confirm-buttons">
+        <button class="cancel-btn" id="confirmCancel">キャンセル</button>
+        <button class="confirm-btn" id="confirmOk">削除する</button>
+      </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "cowCalendarData_v2";
+    const STORAGE_KEY = "cow_breeding_data_v4";
 
-    /* --- Utilities: 安全な日付処理 --- */
-    function parseYMD(ymd){
-      const [y,m,d] = String(ymd).split("-");
-      return new Date(Number(y), Number(m)-1, Number(d));
-    }
-    function formatYMD(date){
-      const y = date.getFullYear();
-      const m = String(date.getMonth()+1).padStart(2,"0");
-      const d = String(date.getDate()).padStart(2,"0");
-      return `${y}-${m}-${d}`;
-    }
-    function addDaysYMD(ymd, days){
-      const dt = parseYMD(ymd);
-      dt.setDate(dt.getDate() + days);
-      return formatYMD(dt);
-    }
-
-    /* --- storage --- */
-    function loadCows(){
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      } catch (e) {
-        console.error("storage parse error", e);
-        return [];
+    // Utility Functions
+    const dateUtil = {
+      parse: (str) => new Date(str.replace(/-/g, '/')),
+      format: (dt) => {
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth()+1).padStart(2,'0');
+        const d = String(dt.getDate()).padStart(2,'0');
+        return `${y}-${m}-${d}`;
+      },
+      addDays: (str, days) => {
+        const d = dateUtil.parse(str);
+        d.setDate(d.getDate() + days);
+        return dateUtil.format(d);
+      },
+      isToday: (dateStr) => {
+        const today = dateUtil.format(new Date());
+        return dateStr === today;
       }
-    }
-    function saveCows(cows){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cows));
+    };
+
+    // Toast Notification
+    function showToast(message, duration = 3000) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      toastMessage.textContent = message;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, duration);
     }
 
-    /* --- イベント生成（牛データから） --- 
-       ロジック:
-         - status === 'open' の場合はイベントを一切生成しない（カレンダーに表示しない）
-         - status === 'pregnant' の場合は「分娩予定」のみ生成（妊娠鑑定は既に済んでいる想定）
-         - status === 'inseminated' は妊娠鑑定 + 分娩予定を生成
-         - それ以外はデフォルトで両方生成（互換性）
-    */
-    function eventsFromCows(){
-      const cows = loadCows();
+    // Confirmation Dialog
+    let confirmCallback = null;
+    function showConfirm(message, onConfirm) {
+      const dialog = document.getElementById('confirmDialog');
+      const messageEl = document.getElementById('confirmMessage');
+      messageEl.textContent = message;
+      dialog.style.display = 'flex';
+      confirmCallback = onConfirm;
+    }
+
+    document.getElementById('confirmOk').onclick = () => {
+      document.getElementById('confirmDialog').style.display = 'none';
+      if (confirmCallback) confirmCallback();
+      confirmCallback = null;
+    };
+
+    document.getElementById('confirmCancel').onclick = () => {
+      document.getElementById('confirmDialog').style.display = 'none';
+      confirmCallback = null;
+    };
+
+    // Data Management
+    function getCows() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    function saveCows(cows) { localStorage.setItem(STORAGE_KEY, JSON.stringify(cows)); }
+
+    // Statistics
+    function updateStats() {
+      const cows = getCows();
+      document.getElementById('totalCows').textContent = cows.length;
+      document.getElementById('inseminatedCount').textContent = cows.filter(c => c.status === 'inseminated').length;
+      document.getElementById('pregnantCount').textContent = cows.filter(c => c.status === 'pregnant').length;
+      document.getElementById('openCount').textContent = cows.filter(c => c.status === 'open').length;
+    }
+
+    // Events Generation
+    function getEvents() {
+      const cows = getCows();
       const events = [];
       cows.forEach((cow, idx) => {
-        if (!cow || !cow.inseminationDate) return;
-        const status = cow.status || "inseminated";
-        const pregCheck = addDaysYMD(cow.inseminationDate, 60);
-        const due = addDaysYMD(cow.inseminationDate, 285);
+        if (cow.status === 'open') return;
 
-        if (status === "open") {
-          // 空胎はすべて非表示 -> 何もしない
-          return;
-        }
-
-        if (status === "pregnant") {
-          // 妊娠中: 分娩予定のみ
+        if (cow.status === 'inseminated') {
           events.push({
-            date: due,
-            kind: "due",
-            title: "分娩予定",
-            cowIndex: idx,
+            date: dateUtil.addDays(cow.inseminationDate, 60),
+            kind: 'preg-check',
+            title: '妊娠鑑定予定',
             cowName: cow.name,
-            bull: cow.bull,
-            inseminationDate: cow.inseminationDate,
-            status: cow.status
+            cowIndex: idx
           });
-          return;
         }
 
-        // inseminated またはその他: 両方表示（鑑定 + 分娩）
-        events.push({
-          date: pregCheck,
-          kind: "preg-check",
-          title: "妊娠鑑定予定",
-          cowIndex: idx,
-          cowName: cow.name,
-          bull: cow.bull,
-          inseminationDate: cow.inseminationDate,
-          status: cow.status
-        });
-        events.push({
-          date: due,
-          kind: "due",
-          title: "分娩予定",
-          cowIndex: idx,
-          cowName: cow.name,
-          bull: cow.bull,
-          inseminationDate: cow.inseminationDate,
-          status: cow.status
-        });
+        if (cow.status === 'inseminated' || cow.status === 'pregnant') {
+          events.push({
+            date: dateUtil.addDays(cow.inseminationDate, 285),
+            kind: 'due',
+            title: '分娩予定',
+            cowName: cow.name,
+            cowIndex: idx
+          });
+        }
       });
       return events;
     }
 
-    /* --- カレンダー --- */
-    let viewYear, viewMonth; // month: 0-11
-    function initCalendar(){
-      const today = new Date();
-      viewYear = today.getFullYear();
-      viewMonth = today.getMonth();
-      document.getElementById("prevMonth").addEventListener("click", ()=>{ changeMonth(-1); });
-      document.getElementById("nextMonth").addEventListener("click", ()=>{ changeMonth(1); });
-      document.getElementById("todayBtn").addEventListener("click", ()=>{ viewYear = new Date().getFullYear(); viewMonth = new Date().getMonth(); renderCalendar(); });
-      renderCalendar();
-    }
+    // Calendar Rendering
+    let currentViewDate = new Date();
 
-    function changeMonth(delta){
-      viewMonth += delta;
-      if (viewMonth < 0){ viewMonth = 11; viewYear -= 1; }
-      if (viewMonth > 11){ viewMonth = 0; viewYear += 1; }
-      renderCalendar();
-    }
-
-    function renderCalendar(){
-      const calTitle = document.getElementById("calTitle");
+    function renderCalendar() {
       const grid = document.getElementById("calendarGrid");
+      const title = document.getElementById("calTitle");
       grid.innerHTML = "";
-      const monthStart = new Date(viewYear, viewMonth, 1);
-      const monthEnd = new Date(viewYear, viewMonth+1, 0);
-      calTitle.textContent = `${viewYear}年 ${viewMonth+1}月`;
 
-      // first day index (0=日)
-      const startIdx = monthStart.getDay();
-      const daysInMonth = monthEnd.getDate();
+      const y = currentViewDate.getFullYear();
+      const m = currentViewDate.getMonth();
+      title.textContent = `${y}年 ${m + 1}月`;
 
-      const events = eventsFromCows();
-      // map date -> array
-      const map = {};
-      events.forEach(ev => {
-        if (!map[ev.date]) map[ev.date] = [];
-        map[ev.date].push(ev);
-      });
+      const firstDay = new Date(y, m, 1).getDay();
+      const lastDate = new Date(y, m + 1, 0).getDate();
+      const events = getEvents();
 
-      // fill blanks before start
-      for (let i=0;i<startIdx;i++){
+      // Empty cells
+      for (let i = 0; i < firstDay; i++) {
         const blank = document.createElement("div");
         blank.className = "day-cell";
-        blank.style.opacity = "0.4";
-        blank.style.pointerEvents = "none";
+        blank.style.opacity = "0";
+        blank.style.cursor = "default";
         grid.appendChild(blank);
       }
 
-      for (let day=1; day<=daysInMonth; day++){
-        const ymd = formatYMD(new Date(viewYear, viewMonth, day));
+      // Date cells
+      for (let d = 1; d <= lastDate; d++) {
+        const dateStr = dateUtil.format(new Date(y, m, d));
         const cell = document.createElement("div");
         cell.className = "day-cell";
-        cell.dataset.ymd = ymd;
+        
+        if (dateUtil.isToday(dateStr)) {
+          cell.classList.add('today');
+        }
 
-        const num = document.createElement("div");
-        num.className = "day-number";
-        num.textContent = day;
-        cell.appendChild(num);
+        cell.innerHTML = `<div class="day-number">${d}</div>`;
 
-        // badges
-        const badgeContainer = document.createElement("div");
-        badgeContainer.className = "event-badges";
-        const evs = map[ymd] || [];
-        // show up to 3 badges
-        evs.slice(0,3).forEach(ev => {
-          const b = document.createElement("span");
-          b.className = "badge " + ev.kind;
-          b.textContent = ev.kind === "preg-check" ? "鑑定" : "分娩";
-
-          b.addEventListener("click", (e) => {
-            e.stopPropagation(); // 日付セルクリックを防ぐ
-            openEventModal(ev);
+        const dayEvents = events.filter(e => e.date === dateStr);
+        if (dayEvents.length > 0) {
+          cell.classList.add('has-events');
+          const container = document.createElement("div");
+          container.className = "event-badges";
+          dayEvents.forEach(e => {
+            const span = document.createElement("span");
+            span.className = `badge ${e.kind}`;
+            span.textContent = e.kind === 'preg-check' ? '鑑定' : '分娩';
+            container.appendChild(span);
           });
+          cell.appendChild(container);
+        }
 
-          badgeContainer.appendChild(b);
-        });
-        if (evs.length>0) cell.appendChild(badgeContainer);
-
-        // click -> 日付モーダル表示（一覧）
-        cell.addEventListener("click", ()=> {
-          openModalForDate(ymd, evs);
-        });
-
+        cell.onclick = () => openModal(dateStr, dayEvents);
         grid.appendChild(cell);
       }
-
-      // fill trailing blanks to keep grid consistent (optional)
-      const totalCells = startIdx + daysInMonth;
-      const trailing = (7 - (totalCells % 7)) % 7;
-      for (let i=0;i<trailing;i++){
-        const blank = document.createElement("div");
-        blank.className = "day-cell";
-        blank.style.opacity = "0.4";
-        blank.style.pointerEvents = "none";
-        grid.appendChild(blank);
-      }
     }
 
-    /* --- モーダル --- */
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalEvents = document.getElementById("modalEvents");
-    const modalDateTitle = document.getElementById("modalDateTitle");
-    document.getElementById("closeModal").addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e)=>{ if(e.target===modalOverlay) closeModal(); });
+    // Cow List Rendering
+    function renderCowList() {
+      const listDiv = document.getElementById("cowList");
+      listDiv.innerHTML = "";
+      const cows = getCows();
 
-    function openModalForDate(ymd, evs){
-      modalDateTitle.textContent = `${ymd} のイベント`;
-      modalEvents.innerHTML = "";
-      if (!evs || evs.length===0){
-        modalEvents.innerHTML = `<div class="small">イベントはありません。</div>`;
-      } else {
-        evs.forEach(ev => {
-          const item = document.createElement("div");
-          item.className = "event-item";
-
-          const topRow = document.createElement("div");
-          topRow.style.display = "flex";
-          topRow.style.justifyContent = "space-between";
-          topRow.style.alignItems = "center";
-
-          const left = document.createElement("div");
-          const strong = document.createElement("strong");
-          strong.textContent = ev.title;
-          left.appendChild(strong);
-
-          const badge = document.createElement("span");
-          badge.style.display = "inline-block";
-          badge.style.verticalAlign = "middle";
-          badge.style.marginLeft = "8px";
-          badge.style.width = "12px";
-          badge.style.height = "12px";
-          badge.style.borderRadius = "50%";
-          badge.style.boxShadow = "0 6px 12px rgba(0,0,0,0.12)";
-          badge.style.background = ev.kind === "preg-check" ? "#ffb3a3" : "#7fd18a";
-          left.appendChild(badge);
-
-          const right = document.createElement("div");
-          right.className = "small";
-          right.textContent = `牛: ${ev.cowName}`;
-
-          topRow.appendChild(left);
-          topRow.appendChild(right);
-
-          const meta = document.createElement("div");
-          meta.className = "meta";
-          meta.textContent = `人工授精日: ${ev.inseminationDate} ・ 雄牛: ${ev.bull || '—'} ・ ステータス: ${ev.status}`;
-
-          const actions = document.createElement("div");
-          actions.style.marginTop = "8px";
-          const detailsBtn = document.createElement("button");
-          detailsBtn.textContent = "詳細／操作";
-          detailsBtn.addEventListener("click", ()=> {
-            openEventModalFromIndex(ev.cowIndex, ev.date, ev.kind);
-          });
-
-          actions.appendChild(detailsBtn);
-
-          item.appendChild(topRow);
-          item.appendChild(meta);
-          item.appendChild(actions);
-
-          modalEvents.appendChild(item);
-        });
-      }
-      modalOverlay.style.display = "flex";
-    }
-
-    function closeModal(){
-      modalOverlay.style.display = "none";
-    }
-
-    /* --- イベント専用モーダル（単一イベントの詳細＆操作） --- */
-    function openEventModal(ev){
-      // ev: object
-      const selHTML = `
-        <select id="eventStatusSelect">
-          <option value="inseminated" ${ev.status === 'inseminated' ? 'selected' : ''}>授精済み</option>
-          <option value="pregnant" ${ev.status === 'pregnant' ? 'selected' : ''}>妊娠中</option>
-          <option value="open" ${ev.status === 'open' ? 'selected' : ''}>空胎</option>
-        </select>
-      `;
-
-      modalDateTitle.textContent = `${ev.date} — ${ev.title}`;
-      modalEvents.innerHTML = `
-        <div class="event-item">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><strong>${ev.title}</strong></div>
-            <div class="small">牛: ${ev.cowName}</div>
+      if (cows.length === 0) {
+        listDiv.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🐃</div>
+            <h3>登録データがありません</h3>
+            <p>上のフォームから牛の情報を登録してください</p>
           </div>
-          <div class="meta">人工授精日: ${ev.inseminationDate} ・ 雄牛: ${ev.bull || '—'}</div>
-          <div style="margin-top:10px">
-            <label><strong>ステータス変更</strong></label>
-            ${selHTML}
-            <div style="margin-top:8px;display:flex;gap:8px">
-              <button id="saveStatusBtn">保存</button>
-              <button id="gotoCowBtn">この牛の詳細を見る</button>
-            </div>
-          </div>
-        </div>
-      `;
+        `;
+        return;
+      }
 
-      // save handler
-      setTimeout(()=>{
-        const saveBtn = document.getElementById('saveStatusBtn');
-        if (saveBtn) {
-          saveBtn.addEventListener('click', ()=>{
-            const sel = document.getElementById('eventStatusSelect');
-            const newStatus = sel ? sel.value : ev.status;
-            updateCowStatus(ev.cowIndex, newStatus);
-            closeModal();
-          });
-        }
-        const gotoBtn = document.getElementById('gotoCowBtn');
-        if (gotoBtn) {
-          gotoBtn.addEventListener('click', ()=>{
-            scrollToCow(ev.cowIndex);
-          });
-        }
-      }, 10);
-
-      modalOverlay.style.display = 'flex';
-    }
-
-    // helper used when opening from date-list -> pass cowIndex, date, kind
-    function openEventModalFromIndex(cowIndex, date, kind){
-      const cows = loadCows();
-      const cow = cows[cowIndex];
-      if(!cow) return alert('指定の牛が見つかりません');
-      const ev = {
-        date,
-        kind,
-        title: kind === 'preg-check' ? '妊娠鑑定予定' : '分娩予定',
-        cowIndex,
-        cowName: cow.name,
-        bull: cow.bull,
-        inseminationDate: cow.inseminationDate,
-        status: cow.status
-      };
-      openEventModal(ev);
-    }
-
-    function updateCowStatus(index, status){
-      const cows = loadCows();
-      if(!cows[index]) return;
-      cows[index].status = status;
-      saveCows(cows);
-      renderCowList();
-      renderCalendar();
-    }
-
-    /* --- 牛リスト描画 --- 
-       要点:
-         - status === 'open' の場合は「次回発情/鑑定/分娩」等の予定表示を隠す
-         - status に応じて強調ラベルも切り替える
-    */
-    function renderCowList(){
-      const list = document.getElementById("cowList");
-      list.innerHTML = "";
-      const cows = loadCows();
-      cows.forEach((cow, index) => {
+      cows.forEach((cow, idx) => {
         const card = document.createElement("div");
-        card.className = "cow-card";
+        card.className = `cow-card status-${cow.status}`;
 
-        const nextHeat = cow.inseminationDate ? addDaysYMD(cow.inseminationDate, 21) : '—';
-        const pregnancyCheck = cow.inseminationDate ? addDaysYMD(cow.inseminationDate, 60) : '—';
-        const dueDate = cow.inseminationDate ? addDaysYMD(cow.inseminationDate, 285) : '—';
+        const is_open = cow.status === 'open';
+        const pregDate = dateUtil.addDays(cow.inseminationDate, 60);
+        const dueDate = dateUtil.addDays(cow.inseminationDate, 285);
 
-        // highlight (表示ポリシーに合わせて)
-        let highlightHTML = "";
-        if (cow.status === "inseminated") {
-          highlightHTML = `<span class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span>`;
-        } else if (cow.status === "pregnant") {
-          highlightHTML = `<span class="date-highlight-green">分娩予定日: ${dueDate}</span>`;
-        } else if (cow.status === "open") {
-          highlightHTML = `<span class="date-highlight" style="opacity:0.6">予定は非表示</span>`;
+        let statusLabels = "";
+        if (!is_open) {
+          if (cow.status === 'inseminated') {
+            statusLabels = `
+              <span class="date-highlight">🔬 鑑定予定: ${pregDate}</span>
+              <span class="date-highlight-green">🍼 分娩予定: ${dueDate}</span>
+            `;
+          } else if (cow.status === 'pregnant') {
+            statusLabels = `<span class="date-highlight-green">🍼 分娩予定: ${dueDate}</span>`;
+          }
         } else {
-          highlightHTML = `<span class="date-highlight">妊娠鑑定予定日: ${pregnancyCheck}</span><span style="margin-left:8px" class="date-highlight-green">分娩予定日: ${dueDate}</span>`;
-        }
-
-        // details: insemination は常に表示。その他の予定は status が 'open' の場合は非表示。
-        let detailsHTML = `<div class="small">人工授精日: ${cow.inseminationDate || '—'}</div>`;
-        if (cow.status !== "open") {
-          detailsHTML += `<div class="small">次回発情予定日: ${nextHeat}</div>`;
-          detailsHTML += `<div class="small">空胎検査予定日: ${pregnancyCheck}</div>`;
-          detailsHTML += `<div class="small">分娩予定日: ${dueDate}</div>`;
-        } else {
-          detailsHTML += `<div class="small" style="opacity:0.7">（空胎: 予定は非表示）</div>`;
+          statusLabels = `<span class="small" style="color:#dc2626">⚠️ 空胎のため予定はありません</span>`;
         }
 
         card.innerHTML = `
           <div class="cow-header">
-            <div><strong>${cow.name}</strong> <span class="small">(${cow.bull || '—'})</span></div>
-            <select data-index="${index}" class="status-select">
-              <option value="inseminated" ${cow.status === "inseminated" ? "selected" : ""}>授精済み</option>
-              <option value="pregnant" ${cow.status === "pregnant" ? "selected" : ""}>妊娠中</option>
-              <option value="open" ${cow.status === "open" ? "selected" : ""}>空胎</option>
+            <div>
+              <span class="cow-name">${cow.name}</span>
+              ${cow.bull ? `<span class="bull-name">種雄牛: ${cow.bull}</span>` : ''}
+            </div>
+            <select class="status-select status-${cow.status}" onchange="updateStatus(${idx}, this.value)">
+              <option value="inseminated" ${cow.status==='inseminated'?'selected':''}>授精済み</option>
+              <option value="pregnant" ${cow.status==='pregnant'?'selected':''}>妊娠中</option>
+              <option value="open" ${cow.status==='open'?'selected':''}>空胎</option>
             </select>
           </div>
-          ${detailsHTML}
-          <div style="margin-top:8px">${highlightHTML}</div>
+          <div class="small">📅 人工授精日: ${cow.inseminationDate}</div>
+          <div style="margin-top:12px">${statusLabels}</div>
+          <button class="delete-btn" onclick="deleteCow(${idx}, '${cow.name}')">🗑️ 削除</button>
         `;
-        list.appendChild(card);
-
-        // attach change listener to select (イベントデリゲーションではなく個別登録)
-        const sel = card.querySelector('.status-select');
-        if (sel) {
-          sel.addEventListener('change', (e) => {
-            const newStatus = e.target.value;
-            changeStatus(index, newStatus);
-          });
-        }
+        listDiv.appendChild(card);
       });
     }
 
-    function changeStatus(index, status){
-      const cows = loadCows();
-      if (!cows[index]) return;
-      cows[index].status = status;
+    // Actions
+    function updateStatus(idx, newStatus) {
+      const cows = getCows();
+      const oldStatus = cows[idx].status;
+      cows[idx].status = newStatus;
       saveCows(cows);
+      
+      const statusNames = {
+        'inseminated': '授精済み',
+        'pregnant': '妊娠中',
+        'open': '空胎'
+      };
+      showToast(`${cows[idx].name} のステータスを「${statusNames[newStatus]}」に更新しました`);
+      refreshUI();
+    }
+
+    function deleteCow(idx, name) {
+      showConfirm(
+        `「${name}」のデータを完全に削除します。この操作は取り消せません。本当によろしいですか？`,
+        () => {
+          const cows = getCows();
+          cows.splice(idx, 1);
+          saveCows(cows);
+          showToast(`${name} のデータを削除しました`);
+          refreshUI();
+        }
+      );
+    }
+
+    function refreshUI() {
+      updateStats();
       renderCowList();
       renderCalendar();
     }
 
-    /* --- フォーム登録 --- */
-    document.getElementById("cowForm").addEventListener("submit", e => {
+    // Form Submit
+    document.getElementById("cowForm").onsubmit = (e) => {
       e.preventDefault();
       const name = document.getElementById("cowName").value.trim();
-      const inseminationDate = document.getElementById("inseminationDate").value;
+      const date = document.getElementById("inseminationDate").value;
       const bull = document.getElementById("bullName").value.trim();
-      if (!name || !inseminationDate) return alert("名前と人工授精日は必須です。");
-      const cow = {
-        name,
-        inseminationDate,
-        bull,
-        status: "inseminated"
-      };
-      const cows = loadCows();
-      cows.push(cow);
+      
+      const cows = getCows();
+      cows.push({ name, inseminationDate: date, bull, status: 'inseminated' });
       saveCows(cows);
+      
+      showToast(`${name} を登録しました`);
       e.target.reset();
-      renderCowList();
-      renderCalendar();
-    });
+      refreshUI();
+    };
 
-    /* --- スクロール＆強調 --- */
-    function scrollToCow(index){
-      const cards = document.querySelectorAll(".cow-card");
-      const card = cards[index];
-      if(!card) return;
-      closeModal();
-      card.scrollIntoView({behavior:"smooth",block:"center"});
-      const prev = card.style.boxShadow;
-      card.style.boxShadow = "0 0 0 4px #68d391";
-      setTimeout(()=>card.style.boxShadow = prev || "0 6px 18px rgba(0,0,0,0.06)" , 1500);
+    // Modal
+    function openModal(dateStr, dayEvents) {
+      const overlay = document.getElementById("modalOverlay");
+      const title = document.getElementById("modalDateTitle");
+      const eventsDiv = document.getElementById("modalEvents");
+
+      const dt = dateUtil.parse(dateStr);
+      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][dt.getDay()];
+      title.textContent = `📅 ${dateStr} (${dayOfWeek})`;
+      eventsDiv.innerHTML = "";
+
+      if (dayEvents.length === 0) {
+        eventsDiv.innerHTML = "<p class='small' style='text-align:center;padding:20px;color:#9ca3af'>この日の予定はありません</p>";
+      } else {
+        dayEvents.forEach(ev => {
+          const icon = ev.kind === 'preg-check' ? '🔬' : '🍼';
+          const div = document.createElement("div");
+          div.className = "event-item";
+          div.innerHTML = `
+            <strong>${icon} ${ev.title}</strong><br>
+            <span class="small">対象牛: ${ev.cowName}</span>
+            <div style="margin-top:12px">
+              <label class="small" style="font-weight:600">ステータス更新:</label>
+              <select onchange="updateStatus(${ev.cowIndex}, this.value); closeModal();">
+                <option value="">-- 選択してください --</option>
+                <option value="inseminated">授精済みに変更</option>
+                <option value="pregnant">妊娠中に変更</option>
+                <option value="open">空胎に変更</option>
+              </select>
+            </div>
+          `;
+          eventsDiv.appendChild(div);
+        });
+      }
+      overlay.style.display = "flex";
     }
 
-    /* --- 初期化 --- */
-    initCalendar();
-    renderCowList();
+    function closeModal() { 
+      document.getElementById("modalOverlay").style.display = "none"; 
+    }
+    document.getElementById("closeModal").onclick = closeModal;
+    document.getElementById("modalOverlay").onclick = (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    };
 
+    // Calendar Navigation
+    document.getElementById("prevMonth").onclick = () => { 
+      currentViewDate.setMonth(currentViewDate.getMonth()-1); 
+      renderCalendar(); 
+    };
+    document.getElementById("nextMonth").onclick = () => { 
+      currentViewDate.setMonth(currentViewDate.getMonth()+1); 
+      renderCalendar(); 
+    };
+    document.getElementById("todayBtn").onclick = () => { 
+      currentViewDate = new Date(); 
+      renderCalendar();
+      showToast('今月のカレンダーを表示しました');
+    };
+
+    // Set default date to today
+    document.getElementById("inseminationDate").valueAsDate = new Date();
+
+    // Initialize
+    refreshUI();
   </script>
 </body>
 </html>
