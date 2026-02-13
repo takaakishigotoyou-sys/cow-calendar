@@ -3,722 +3,854 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>牛の繁殖カレンダー（洗練版）</title>
+  <title>牛の繁殖カレンダー Pro</title>
   <style>
     :root{
-      --bg:#f6f7f9;
-      --primary:#2f855a;
-      --card-bg:#fff;
-      --muted:#555;
+      --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --primary: #2f855a;
+      --primary-dark: #276749;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --muted: #555;
       --accent-red: #c53030;
       --accent-green: #2f855a;
-      --shadow: 0 2px 8px rgba(0,0,0,0.08);
-      --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
-    }
-    *{box-sizing:border-box}
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color:#222;
+      --shadow: 0 10px 40px rgba(0,0,0,0.1);
+      --shadow-hover: 0 15px 50px rgba(0,0,0,0.15);
     }
     
-    /* Header */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: #222;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Header with animation */
     header {
-      background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
       color: white;
-      padding: 16px;
+      padding: 20px 16px;
       text-align: center;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       font-weight: bold;
-      box-shadow: 0 4px 12px rgba(47,133,90,0.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      animation: slideDown 0.5s ease;
     }
-    header small {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: normal;
-      margin-top: 4px;
-      opacity: 0.9;
+    
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
-
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    
     .container {
-      padding: 20px;
-      max-width: 1200px;
+      padding: 24px;
+      max-width: 1400px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 450px;
-      gap: 20px;
+      grid-template-columns: 1fr 480px;
+      gap: 24px;
     }
-
-    /* Stats Bar */
-    .stats-bar {
+    
+    /* Statistics Panel */
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.6s ease 0.2s both;
+    }
+    
+    .stat-card {
       background: var(--card-bg);
       padding: 16px;
       border-radius: 12px;
       box-shadow: var(--shadow);
-      margin-bottom: 16px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 16px;
-    }
-    .stat-item {
       text-align: center;
-      padding: 8px;
-      border-radius: 8px;
-      background: #f9fafb;
-      transition: transform 0.2s;
+      transition: all 0.3s ease;
     }
-    .stat-item:hover { transform: translateY(-2px); }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
     .stat-number {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: bold;
       color: var(--primary);
     }
+    
     .stat-label {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--muted);
       margin-top: 4px;
     }
-
-    /* Form */
+    
+    /* Form improvements */
     form {
       background: var(--card-bg);
       padding: 20px;
       border-radius: 12px;
       box-shadow: var(--shadow);
       margin-bottom: 20px;
-      transition: box-shadow 0.3s;
+      animation: fadeIn 0.6s ease 0.3s both;
+      position: relative;
+      overflow: hidden;
     }
-    form:hover { box-shadow: var(--shadow-hover); }
-    form h3 {
-      margin: 0 0 16px 0;
+    
+    form::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #48bb78);
+    }
+    
+    .form-title {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
       color: var(--primary);
-      font-size: 1.1rem;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    form div { margin-bottom: 12px; }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+    }
+    
     label {
       font-weight: 600;
       display: block;
       margin-bottom: 6px;
       font-size: 0.9rem;
-      color: #374151;
+      color: #333;
     }
-    input, select, button {
+    
+    input, select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px;
       font-size: 1rem;
-      border: 2px solid #e5e7eb;
+      border: 2px solid #e2e8f0;
       border-radius: 8px;
       background: white;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
     }
+    
     input:focus, select:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(47,133,90,0.1);
+      box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.1);
     }
+    
     button {
-      background: linear-gradient(135deg, var(--primary) 0%, #38a169 100%);
-      color: white;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
       border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
     }
-    button:hover { 
+    
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    button:hover {
+      background: var(--primary-dark);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(47,133,90,0.3);
+      box-shadow: 0 6px 20px rgba(47, 133, 90, 0.3);
     }
-    button:active { transform: translateY(0); }
-
-    /* Cow Cards */
-    .cow-list-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .cow-list-header h3 {
-      margin: 0;
-      color: var(--primary);
-    }
-    .sort-btn {
-      width: auto;
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      background: #f3f4f6;
-      color: #374151;
-    }
-
-    .empty-state {
+    
+    /* Search and Filter */
+    .controls {
       background: var(--card-bg);
-      padding: 60px 20px;
+      padding: 16px;
       border-radius: 12px;
-      text-align: center;
       box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      animation: fadeIn 0.6s ease 0.4s both;
     }
-    .empty-state-icon {
-      font-size: 4rem;
-      margin-bottom: 16px;
-      opacity: 0.3;
+    
+    .search-input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
     }
-    .empty-state h3 {
-      color: var(--muted);
-      margin: 0 0 8px 0;
+    
+    .filter-select {
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
     }
-    .empty-state p {
-      color: #9ca3af;
-      margin: 0;
+    
+    .btn-icon {
+      width: auto;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      background: #4299e1;
     }
-
+    
+    .btn-icon:hover {
+      background: #3182ce;
+    }
+    
+    /* Cow cards enhanced */
     .cow-card {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       box-shadow: var(--shadow);
-      border-left: 6px solid #ccc;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      animation: slideIn 0.3s ease-out;
+      border-left: 5px solid #ccc;
+      transition: all 0.3s ease;
+      animation: fadeIn 0.6s ease both;
     }
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    
     .cow-card:hover {
-      transform: translateY(-4px);
+      transform: translateX(5px);
       box-shadow: var(--shadow-hover);
     }
+    
     .cow-card.status-inseminated { border-left-color: #f6ad55; }
     .cow-card.status-pregnant { border-left-color: #48bb78; }
-    .cow-card.status-open { border-left-color: #e53e3e; }
-
+    .cow-card.status-open { border-left-color: #fc8181; }
+    
     .cow-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
+    
     .cow-name {
       font-size: 1.2rem;
-      font-weight: 700;
-      color: #1f2937;
+      font-weight: bold;
+      color: #2d3748;
     }
+    
     .bull-name {
       font-size: 0.85rem;
       color: var(--muted);
       margin-left: 8px;
-      padding: 2px 8px;
-      background: #f3f4f6;
-      border-radius: 6px;
     }
-    .status-select {
-      width: 130px;
-      font-size: 0.85rem;
-      padding: 6px 10px;
+    
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
       font-weight: 600;
-      cursor: pointer;
+      text-transform: uppercase;
     }
-    .status-inseminated option:first-child { color: #f6ad55; }
-    .status-pregnant option:nth-child(2) { color: #48bb78; }
-    .status-open option:last-child { color: #e53e3e; }
-
-    .small {
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-
+    
     .date-highlight, .date-highlight-green {
       display: inline-block;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 700;
       font-size: 0.85rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
       margin-right: 8px;
       margin-top: 8px;
       transition: transform 0.2s;
     }
+    
     .date-highlight:hover, .date-highlight-green:hover {
       transform: scale(1.05);
     }
+    
     .date-highlight {
-      color: #92400e;
+      color: #744210;
       background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
       border: 1px solid #fbbf24;
     }
+    
     .date-highlight-green {
       color: #065f46;
       background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
       border: 1px solid #6ee7b7;
     }
-
-    .delete-btn {
-      background: none;
-      color: #ef4444;
-      font-size: 0.8rem;
-      width: auto;
-      padding: 6px 12px;
-      margin-top: 12px;
-      border: 2px solid #fecaca;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .delete-btn:hover {
-      background: #fef2f2;
-      border-color: #ef4444;
-      transform: none;
-    }
-
-    /* Calendar */
+    
+    /* Calendar enhancements */
     .right-column {
-      display:flex;
-      flex-direction:column;
-      gap:16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
+    
     .calendar-card {
       background: var(--card-bg);
-      padding:20px;
-      border-radius:12px;
+      padding: 20px;
+      border-radius: 12px;
       box-shadow: var(--shadow);
-      transition: box-shadow 0.3s;
+      animation: fadeIn 0.6s ease 0.5s both;
     }
-    .calendar-card:hover { box-shadow: var(--shadow-hover); }
     
     .cal-header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 2px solid #f3f4f6;
+      border-bottom: 2px solid #e2e8f0;
     }
+    
+    .cal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
     .cal-nav {
       display: flex;
       gap: 8px;
     }
+    
     .cal-nav button {
-      width: 44px;
-      height: 44px;
-      font-size: 1.2rem;
-      padding: 0;
-      background: #f9fafb;
-      color: var(--primary);
-      border: 2px solid #e5e7eb;
-    }
-    .cal-nav button:hover {
-      background: var(--primary);
-      color: white;
-    }
-    #calTitle {
-      font-weight:700;
-      font-size: 1.1rem;
-      color: #1f2937;
-    }
-    #todayBtn {
-      width: 70px;
-      font-size: 0.85rem;
+      width: 40px;
       padding: 8px;
-      background: var(--primary);
-      color: white;
-    }
-
-    .cal-grid {
-      display:grid;
-      grid-template-columns: repeat(7,1fr);
-      gap:8px;
-    }
-    .weekday {
-      text-align:center;
-      font-weight:700;
-      font-size:0.85rem;
-      padding:8px 4px;
-      color:#374151;
-      background: #f9fafb;
-      border-radius: 6px;
-    }
-    .weekday.sun { color:#dc2626; }
-    .weekday.sat { color:#2563eb; }
-
-    .day-cell {
-      min-height:90px;
-      background:#fbfcfd;
-      border-radius:10px;
-      padding:10px;
-      position:relative;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-      cursor:pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow:hidden;
-      border: 2px solid transparent;
-    }
-    .day-cell:hover{ 
-      transform: translateY(-4px);
-      background: #fff;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
-      border-color: var(--primary);
-    }
-    .day-cell.today {
-      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-      border-color: #3b82f6;
       font-weight: bold;
+      font-size: 1.1rem;
     }
-    .day-cell.has-events {
-      background: #fef3c7;
+    
+    #todayBtn {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 0.85rem;
     }
-    .day-number {
-      font-weight:700;
-      font-size:1rem;
-      color: #374151;
-    }
-    .day-cell.today .day-number {
-      color: #1e40af;
-    }
-
-    .event-badges {
-      position:absolute;
-      right:6px;
-      bottom:6px;
-      display:flex;
-      gap:4px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .badge {
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      animation: badgePop 0.3s ease-out;
-    }
-    @keyframes badgePop {
-      0% { transform: scale(0); }
-      60% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    .badge.preg-check { 
-      background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-      color:#7c2d12;
-    }
-    .badge.due { 
-      background: linear-gradient(135deg, #bbf7d0 0%, #86efac 100%);
-      color:#14532d;
-    }
-
-    /* Legend */
-    .legend-card {
-      background: var(--card-bg);
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-    }
-    .legend-title {
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: #1f2937;
-    }
-    .legend-items {
-      display: flex;
-      flex-direction: column;
+    
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
       gap: 8px;
     }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
+    
+    .weekday {
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 10px 4px;
+      color: #4a5568;
+      background: #f7fafc;
+      border-radius: 6px;
     }
-
-    /* Modal */
-    .modal-overlay {
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:1000;
-      padding:20px;
-      animation: fadeIn 0.2s ease-out;
+    
+    .weekday:first-child { color: #e53e3e; }
+    .weekday:last-child { color: #3182ce; }
+    
+    .day-cell {
+      min-height: 90px;
+      background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+      border-radius: 10px;
+      padding: 10px;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .modal {
-      background: var(--card-bg);
-      border-radius:16px;
-      padding:28px;
-      width:100%;
-      max-width:500px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .modal h3 {
-      margin: 0 0 20px 0;
-      color: var(--primary);
-      font-size: 1.3rem;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #f3f4f6;
-    }
-    .event-item {
-      padding:16px;
-      border-radius:10px;
-      margin-bottom:12px;
-      background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
-      border:2px solid #e5e7eb;
-      transition: all 0.2s;
-    }
-    .event-item:hover {
+    
+    .day-cell:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
       border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(47,133,90,0.1);
+      background: white;
     }
-    .event-item strong {
-      color: #1f2937;
-      font-size: 1.05rem;
+    
+    .day-number {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #2d3748;
     }
-    .event-item select {
-      margin-top: 8px;
+    
+    .day-cell.today {
+      background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+      border-color: #3182ce;
     }
-
+    
+    .day-cell.today .day-number {
+      color: #1a365d;
+    }
+    
+    .event-badges {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    
+    .badge {
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      animation: scaleIn 0.3s ease;
+    }
+    
+    .badge.preg-check {
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+      color: #7a1f1f;
+    }
+    
+    .badge.due {
+      background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+      color: #22543d;
+    }
+    
     /* Toast Notification */
     .toast {
       position: fixed;
-      top: 80px;
-      right: 20px;
+      bottom: -100px;
+      right: 30px;
       background: white;
       padding: 16px 24px;
       border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      display: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      display: flex;
       align-items: center;
       gap: 12px;
       z-index: 2000;
-      animation: slideInRight 0.3s ease-out;
-      border-left: 5px solid var(--primary);
+      transition: bottom 0.4s ease;
+      min-width: 300px;
     }
-    @keyframes slideInRight {
-      from {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+    
+    .toast.show {
+      bottom: 30px;
     }
+    
+    .toast.success {
+      border-left: 4px solid #48bb78;
+    }
+    
+    .toast.error {
+      border-left: 4px solid #f56565;
+    }
+    
     .toast-icon {
       font-size: 1.5rem;
     }
+    
     .toast-message {
+      flex: 1;
       font-weight: 600;
-      color: #1f2937;
     }
-
-    /* Confirmation Dialog */
-    .confirm-dialog {
+    
+    /* Custom Modal */
+    .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 3000;
-      animation: fadeIn 0.2s ease-out;
+      z-index: 1000;
+      padding: 16px;
+      animation: fadeIn 0.3s ease;
     }
-    .confirm-content {
-      background: white;
-      padding: 28px;
+    
+    .modal {
+      background: var(--card-bg);
       border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+      animation: scaleIn 0.3s ease;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-title {
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+      color: var(--primary);
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .event-item {
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border: 1px solid #e2e8f0;
+      transition: transform 0.2s;
+    }
+    
+    .event-item:hover {
+      transform: translateX(5px);
+      border-color: var(--primary);
+    }
+    
+    /* Confirm Dialog */
+    .confirm-dialog {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
       max-width: 400px;
-      width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+      animation: scaleIn 0.3s ease;
     }
-    .confirm-content h3 {
-      margin: 0 0 12px 0;
-      color: #1f2937;
-      font-size: 1.2rem;
+    
+    .confirm-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
     }
-    .confirm-content p {
-      margin: 0 0 24px 0;
-      color: #6b7280;
-      line-height: 1.6;
+    
+    .confirm-message {
+      font-size: 1.1rem;
+      margin-bottom: 24px;
+      color: #2d3748;
     }
+    
     .confirm-buttons {
       display: flex;
       gap: 12px;
     }
-    .confirm-buttons button {
-      flex: 1;
+    
+    .btn-cancel {
+      background: #a0aec0;
     }
-    .cancel-btn {
-      background: #f3f4f6;
-      color: #374151;
+    
+    .btn-cancel:hover {
+      background: #718096;
     }
-    .confirm-btn {
-      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    
+    .btn-danger {
+      background: #f56565;
     }
-
-    @media (max-width:1100px){
-      .container{ grid-template-columns: 1fr; }
-      .right-column{ order: -1; }
+    
+    .btn-danger:hover {
+      background: #e53e3e;
     }
-    @media (max-width:600px){
-      .stats-bar { grid-template-columns: repeat(2, 1fr); }
-      form > div > div { grid-template-columns: 1fr !important; }
+    
+    /* Export buttons */
+    .export-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
     }
+    
+    .btn-small {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+    
+    .btn-export {
+      background: #4299e1;
+    }
+    
+    .btn-export:hover {
+      background: #3182ce;
+    }
+    
+    .btn-import {
+      background: #9f7aea;
+    }
+    
+    .btn-import:hover {
+      background: #805ad5;
+    }
+    
+    /* Help tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #2d3748;
+      color: white;
+      text-align: center;
+      border-radius: 8px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.8rem;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Loading state */
+    .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3000;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .right-column {
+        order: -1;
+      }
+      .stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .controls {
+        flex-direction: column;
+      }
+      .stats-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Utility classes */
+    .small { font-size: 0.9rem; color: var(--muted); }
+    .hidden { display: none; }
+    .text-center { text-align: center; }
+    .mb-2 { margin-bottom: 8px; }
+    .mt-2 { margin-top: 8px; }
   </style>
 </head>
 <body>
 
   <header>
     🐃牛の繁殖管理システム🐃
-    <small>人工授精から分娩まで一元管理</small>
+    <div style="font-size:0.5em; margin-top:8px; opacity:0.9">
+      人工授精から分娩まで一元管理
+    </div>
   </header>
 
   <div class="container">
+    <!-- Left Column -->
     <div>
-      <!-- Statistics Bar -->
-      <div class="stats-bar">
-        <div class="stat-item">
-          <div class="stat-number" id="totalCows">0</div>
-          <div class="stat-label">登録頭数</div>
+      <!-- Statistics Panel -->
+      <div class="stats-panel">
+        <div class="stat-card">
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-label">総頭数</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number" id="inseminatedCount">0</div>
+        <div class="stat-card">
+          <div class="stat-number" id="statInseminated" style="color:#f6ad55">0</div>
           <div class="stat-label">授精済み</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number" id="pregnantCount">0</div>
+        <div class="stat-card">
+          <div class="stat-number" id="statPregnant" style="color:#48bb78">0</div>
           <div class="stat-label">妊娠中</div>
         </div>
-        <div class="stat-item">
-          <div class="stat-number" id="openCount">0</div>
+        <div class="stat-card">
+          <div class="stat-number" id="statOpen" style="color:#fc8181">0</div>
           <div class="stat-label">空胎</div>
         </div>
       </div>
 
       <!-- Form -->
       <form id="cowForm">
-        <h3>📝 新規登録</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-          <div>
+        <div class="form-title">
+          ➕ 新規登録
+          <span class="tooltip">
+            ❓
+            <span class="tooltiptext">人工授精を行った牛の情報を登録します</span>
+          </span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
             <label>母牛の名前 *</label>
             <input type="text" id="cowName" placeholder="例：はなこ" required />
           </div>
-          <div>
+          <div class="form-group">
             <label>授精種雄牛</label>
-            <input type="text" id="bullName" placeholder="例：梅華福" />
+            <input type="text" id="bullName" placeholder="例：安福久" />
           </div>
         </div>
-        <div style="margin-top:12px">
+        <div class="form-group">
           <label>人工授精日 *</label>
           <input type="date" id="inseminationDate" required />
         </div>
-        <button type="submit" style="margin-top:16px">✓ 登録する</button>
+        <button type="submit">✓ 登録する</button>
+        
+        <div class="export-controls">
+          <button type="button" class="btn-small btn-export" onclick="exportData()">
+            📤 データ出力
+          </button>
+          <button type="button" class="btn-small btn-import" onclick="document.getElementById('importFile').click()">
+            📥 データ読込
+          </button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
       </form>
 
-      <!-- Cow List -->
-      <div class="cow-list-header">
-        <h3>📋 登録済み牛一覧</h3>
+      <!-- Search and Filter Controls -->
+      <div class="controls">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 牛の名前で検索...">
+        <select class="filter-select" id="filterStatus" onchange="filterCows()">
+          <option value="all">全てのステータス</option>
+          <option value="inseminated">授精済み</option>
+          <option value="pregnant">妊娠中</option>
+          <option value="open">空胎</option>
+        </select>
+        <select class="filter-select" id="sortBy" onchange="sortCows()">
+          <option value="date">日付順</option>
+          <option value="name">名前順</option>
+        </select>
       </div>
+
+      <!-- Cow List -->
       <div id="cowList"></div>
     </div>
 
-    <!-- Right Column: Calendar -->
+    <!-- Right Column - Calendar -->
     <div class="right-column">
       <div class="calendar-card">
         <div class="cal-header">
           <div class="cal-nav">
-            <button id="prevMonth" title="前月">‹</button>
-            <button id="nextMonth" title="次月">›</button>
+            <button id="prevMonth">◀</button>
+            <button id="nextMonth">▶</button>
           </div>
-          <div id="calTitle"></div>
-          <button id="todayBtn">今日</button>
+          <div class="cal-title" id="calTitle"></div>
+          <button id="todayBtn">📅 今日</button>
         </div>
         <div class="cal-grid">
-          <div class="weekday sun">日</div>
+          <div class="weekday">日</div>
           <div class="weekday">月</div>
           <div class="weekday">火</div>
           <div class="weekday">水</div>
           <div class="weekday">木</div>
           <div class="weekday">金</div>
-          <div class="weekday sat">土</div>
+          <div class="weekday">土</div>
         </div>
         <div class="cal-grid" id="calendarGrid"></div>
       </div>
 
-      <div class="legend-card">
-        <div class="legend-title">📌 凡例</div>
-        <div class="legend-items">
-          <div class="legend-item">
-            <span class="badge preg-check">鑑定</span>
-            <span>妊娠鑑定予定日（授精60日後）</span>
-          </div>
-          <div class="legend-item">
-            <span class="badge due">分娩</span>
-            <span>分娩予定日（授精285日後）</span>
-          </div>
+      <!-- Legend -->
+      <div class="calendar-card small">
+        <strong style="font-size:1rem">📋 凡例</strong>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
+          <span><span class="badge preg-check">鑑定</span> 妊娠鑑定予定</span>
+          <span><span class="badge due">分娩</span> 分娩予定日</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay">
+  <!-- Event Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="if(event.target === this) closeModal()">
     <div class="modal">
-      <h3 id="modalDateTitle"></h3>
+      <h3 class="modal-title" id="modalDateTitle"></h3>
       <div id="modalEvents"></div>
-      <button id="closeModal" style="background:#6b7280; margin-top:16px">閉じる</button>
+      <button id="closeModal" style="background:#718096; margin-top:16px">✕ 閉じる</button>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay" id="confirmOverlay">
+    <div class="confirm-dialog">
+      <div class="confirm-icon">⚠️</div>
+      <div class="confirm-message" id="confirmMessage"></div>
+      <div class="confirm-buttons">
+        <button class="btn-cancel" onclick="closeConfirm(false)">キャンセル</button>
+        <button class="btn-danger" onclick="closeConfirm(true)">削除する</button>
+      </div>
     </div>
   </div>
 
   <!-- Toast Notification -->
   <div class="toast" id="toast">
-    <div class="toast-icon">✓</div>
+    <div class="toast-icon" id="toastIcon"></div>
     <div class="toast-message" id="toastMessage"></div>
   </div>
 
-  <!-- Confirmation Dialog -->
-  <div class="confirm-dialog" id="confirmDialog">
-    <div class="confirm-content">
-      <h3>⚠️ 確認</h3>
-      <p id="confirmMessage"></p>
-      <div class="confirm-buttons">
-        <button class="cancel-btn" id="confirmCancel">キャンセル</button>
-        <button class="confirm-btn" id="confirmOk">削除する</button>
-      </div>
-    </div>
+  <!-- Loading Spinner -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
   </div>
 
   <script>
     const STORAGE_KEY = "cow_breeding_data_v4";
+    let confirmCallback = null;
 
-    // Utility Functions
+    // 日付計算ユーティリティ
     const dateUtil = {
       parse: (str) => new Date(str.replace(/-/g, '/')),
       format: (dt) => {
@@ -733,87 +865,93 @@
         return dateUtil.format(d);
       },
       isToday: (dateStr) => {
-        const today = dateUtil.format(new Date());
-        return dateStr === today;
+        return dateStr === dateUtil.format(new Date());
       }
     };
 
-    // Toast Notification
-    function showToast(message, duration = 3000) {
-      const toast = document.getElementById('toast');
-      const toastMessage = document.getElementById('toastMessage');
-      toastMessage.textContent = message;
-      toast.style.display = 'flex';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, duration);
-    }
-
-    // Confirmation Dialog
-    let confirmCallback = null;
-    function showConfirm(message, onConfirm) {
-      const dialog = document.getElementById('confirmDialog');
-      const messageEl = document.getElementById('confirmMessage');
-      messageEl.textContent = message;
-      dialog.style.display = 'flex';
-      confirmCallback = onConfirm;
-    }
-
-    document.getElementById('confirmOk').onclick = () => {
-      document.getElementById('confirmDialog').style.display = 'none';
-      if (confirmCallback) confirmCallback();
-      confirmCallback = null;
-    };
-
-    document.getElementById('confirmCancel').onclick = () => {
-      document.getElementById('confirmDialog').style.display = 'none';
-      confirmCallback = null;
-    };
-
-    // Data Management
+    // データ操作
     function getCows() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
     function saveCows(cows) { localStorage.setItem(STORAGE_KEY, JSON.stringify(cows)); }
 
-    // Statistics
+    // Toast通知
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toastIcon');
+      const msg = document.getElementById('toastMessage');
+      
+      toast.className = `toast ${type}`;
+      icon.textContent = type === 'success' ? '✓' : '✕';
+      msg.textContent = message;
+      
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // 確認ダイアログ
+    function showConfirm(message) {
+      return new Promise((resolve) => {
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmOverlay').style.display = 'flex';
+        confirmCallback = resolve;
+      });
+    }
+
+    function closeConfirm(result) {
+      document.getElementById('confirmOverlay').style.display = 'none';
+      if (confirmCallback) {
+        confirmCallback(result);
+        confirmCallback = null;
+      }
+    }
+
+    // 統計情報更新
     function updateStats() {
       const cows = getCows();
-      document.getElementById('totalCows').textContent = cows.length;
-      document.getElementById('inseminatedCount').textContent = cows.filter(c => c.status === 'inseminated').length;
-      document.getElementById('pregnantCount').textContent = cows.filter(c => c.status === 'pregnant').length;
-      document.getElementById('openCount').textContent = cows.filter(c => c.status === 'open').length;
+      document.getElementById('statTotal').textContent = cows.length;
+      document.getElementById('statInseminated').textContent = 
+        cows.filter(c => c.status === 'inseminated').length;
+      document.getElementById('statPregnant').textContent = 
+        cows.filter(c => c.status === 'pregnant').length;
+      document.getElementById('statOpen').textContent = 
+        cows.filter(c => c.status === 'open').length;
     }
 
-    // Events Generation
-    function getEvents() {
-      const cows = getCows();
-      const events = [];
-      cows.forEach((cow, idx) => {
-        if (cow.status === 'open') return;
+    // イベント生成ロジック
+function getEvents() {
+  const cows = getCows();
+  const events = [];
 
-        if (cow.status === 'inseminated') {
-          events.push({
-            date: dateUtil.addDays(cow.inseminationDate, 60),
-            kind: 'preg-check',
-            title: '妊娠鑑定予定',
-            cowName: cow.name,
-            cowIndex: idx
-          });
-        }
+  cows.forEach((cow, idx) => {
+    if (cow.status === 'open') return;
 
-        if (cow.status === 'inseminated' || cow.status === 'pregnant') {
-          events.push({
-            date: dateUtil.addDays(cow.inseminationDate, 285),
-            kind: 'due',
-            title: '分娩予定',
-            cowName: cow.name,
-            cowIndex: idx
-          });
-        }
+    // 🟠 授精済み → 妊娠鑑定予定（60日後）
+    if (cow.status === 'inseminated') {
+      events.push({
+        date: dateUtil.addDays(cow.inseminationDate, 60),
+        kind: 'preg-check',
+        title: '妊娠鑑定予定',
+        cowName: cow.name,
+        cowIndex: idx
       });
-      return events;
     }
 
-    // Calendar Rendering
+    // 🟢 妊娠中のみ → 分娩予定（285日後）
+    if (cow.status === 'pregnant') {
+      events.push({
+        date: dateUtil.addDays(cow.inseminationDate, 285),
+        kind: 'due',
+        title: '分娩予定',
+        cowName: cow.name,
+        cowIndex: idx
+      });
+    }
+  });
+
+  return events;
+}
+
+
+    // カレンダー制御
     let currentViewDate = new Date();
 
     function renderCalendar() {
@@ -828,8 +966,9 @@
       const firstDay = new Date(y, m, 1).getDay();
       const lastDate = new Date(y, m + 1, 0).getDate();
       const events = getEvents();
+      const today = dateUtil.format(new Date());
 
-      // Empty cells
+      // 空白セル
       for (let i = 0; i < firstDay; i++) {
         const blank = document.createElement("div");
         blank.className = "day-cell";
@@ -838,21 +977,17 @@
         grid.appendChild(blank);
       }
 
-      // Date cells
+      // 日付セル
       for (let d = 1; d <= lastDate; d++) {
         const dateStr = dateUtil.format(new Date(y, m, d));
         const cell = document.createElement("div");
         cell.className = "day-cell";
+        if (dateStr === today) cell.classList.add('today');
         
-        if (dateUtil.isToday(dateStr)) {
-          cell.classList.add('today');
-        }
-
         cell.innerHTML = `<div class="day-number">${d}</div>`;
 
         const dayEvents = events.filter(e => e.date === dateStr);
         if (dayEvents.length > 0) {
-          cell.classList.add('has-events');
           const container = document.createElement("div");
           container.className = "event-badges";
           dayEvents.forEach(e => {
@@ -869,26 +1004,46 @@
       }
     }
 
-    // Cow List Rendering
+    // 牛リスト表示
+    let currentFilter = 'all';
+    let currentSort = 'date';
+    let currentSearch = '';
+
     function renderCowList() {
       const listDiv = document.getElementById("cowList");
       listDiv.innerHTML = "";
-      const cows = getCows();
+      let cows = getCows();
+
+      // フィルター
+      if (currentFilter !== 'all') {
+        cows = cows.filter(c => c.status === currentFilter);
+      }
+
+      // 検索
+      if (currentSearch) {
+        cows = cows.filter(c => c.name.includes(currentSearch));
+      }
+
+      // ソート
+      if (currentSort === 'name') {
+        cows.sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+      } else {
+        cows.sort((a, b) => new Date(b.inseminationDate) - new Date(a.inseminationDate));
+      }
 
       if (cows.length === 0) {
-        listDiv.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🐃</div>
-            <h3>登録データがありません</h3>
-            <p>上のフォームから牛の情報を登録してください</p>
-          </div>
-        `;
+        listDiv.innerHTML = '<div style="text-align:center; padding:40px; color:#a0aec0">データがありません</div>';
         return;
       }
 
-      cows.forEach((cow, idx) => {
+      cows.forEach((cow, displayIdx) => {
+        const actualIdx = getCows().findIndex(c => 
+          c.name === cow.name && c.inseminationDate === cow.inseminationDate
+        );
+        
         const card = document.createElement("div");
         card.className = `cow-card status-${cow.status}`;
+        card.style.animationDelay = `${displayIdx * 0.05}s`;
 
         const is_open = cow.status === 'open';
         const pregDate = dateUtil.addDays(cow.inseminationDate, 60);
@@ -896,65 +1051,83 @@
 
         let statusLabels = "";
         if (!is_open) {
+          // ← ここを修正：授精済みの場合は鑑定予定のみ表示
           if (cow.status === 'inseminated') {
-            statusLabels = `
-              <span class="date-highlight">🔬 鑑定予定: ${pregDate}</span>
-              <span class="date-highlight-green">🍼 分娩予定: ${dueDate}</span>
-            `;
+            statusLabels = `<div class="date-highlight">📋 鑑定予定: ${pregDate}</div>`;
           } else if (cow.status === 'pregnant') {
-            statusLabels = `<span class="date-highlight-green">🍼 分娩予定: ${dueDate}</span>`;
+            statusLabels = `<div class="date-highlight-green">🐮 分娩予定: ${dueDate}</div>`;
           }
         } else {
-          statusLabels = `<span class="small" style="color:#dc2626">⚠️ 空胎のため予定はありません</span>`;
+          statusLabels = `<div class="small" style="color:#e53e3e; font-weight:600">⚠️ 空胎のため予定はありません</div>`;
         }
+
+        const statusText = {
+          'inseminated': '授精済み',
+          'pregnant': '妊娠中',
+          'open': '空胎'
+        }[cow.status];
 
         card.innerHTML = `
           <div class="cow-header">
             <div>
               <span class="cow-name">${cow.name}</span>
-              ${cow.bull ? `<span class="bull-name">種雄牛: ${cow.bull}</span>` : ''}
+              <span class="bull-name">${cow.bull || '未設定'}</span>
             </div>
-            <select class="status-select status-${cow.status}" onchange="updateStatus(${idx}, this.value)">
+            <select style="width:120px; font-size:0.85rem; padding:8px" onchange="updateStatus(${actualIdx}, this.value)">
               <option value="inseminated" ${cow.status==='inseminated'?'selected':''}>授精済み</option>
               <option value="pregnant" ${cow.status==='pregnant'?'selected':''}>妊娠中</option>
               <option value="open" ${cow.status==='open'?'selected':''}>空胎</option>
             </select>
           </div>
-          <div class="small">📅 人工授精日: ${cow.inseminationDate}</div>
+          <div class="small mb-2">📅 人工授精日: ${cow.inseminationDate}</div>
           <div style="margin-top:12px">${statusLabels}</div>
-          <button class="delete-btn" onclick="deleteCow(${idx}, '${cow.name}')">🗑️ 削除</button>
+          <button onclick="deleteCow(${actualIdx})" style="background:#fc8181; color:white; font-size:0.85rem; width:auto; padding:8px 16px; margin-top:12px">🗑️ 削除</button>
         `;
         listDiv.appendChild(card);
       });
     }
 
-    // Actions
-    function updateStatus(idx, newStatus) {
+    // 検索・フィルター
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      currentSearch = e.target.value;
+      renderCowList();
+    });
+
+    function filterCows() {
+      currentFilter = document.getElementById('filterStatus').value;
+      renderCowList();
+    }
+
+    function sortCows() {
+      currentSort = document.getElementById('sortBy').value;
+      renderCowList();
+    }
+
+    // アクション
+    async function updateStatus(idx, newStatus) {
       const cows = getCows();
       const oldStatus = cows[idx].status;
       cows[idx].status = newStatus;
       saveCows(cows);
+      refreshUI();
       
-      const statusNames = {
+      const statusText = {
         'inseminated': '授精済み',
         'pregnant': '妊娠中',
         'open': '空胎'
-      };
-      showToast(`${cows[idx].name} のステータスを「${statusNames[newStatus]}」に更新しました`);
-      refreshUI();
+      }[newStatus];
+      showToast(`ステータスを「${statusText}」に更新しました`, 'success');
     }
 
-    function deleteCow(idx, name) {
-      showConfirm(
-        `「${name}」のデータを完全に削除します。この操作は取り消せません。本当によろしいですか？`,
-        () => {
-          const cows = getCows();
-          cows.splice(idx, 1);
-          saveCows(cows);
-          showToast(`${name} のデータを削除しました`);
-          refreshUI();
-        }
-      );
+    async function deleteCow(idx) {
+      const cows = getCows();
+      const confirmed = await showConfirm(`「${cows[idx].name}」のデータを削除しますか？`);
+      if (!confirmed) return;
+      
+      cows.splice(idx, 1);
+      saveCows(cows);
+      refreshUI();
+      showToast('データを削除しました', 'error');
     }
 
     function refreshUI() {
@@ -963,50 +1136,88 @@
       renderCalendar();
     }
 
-    // Form Submit
+    // データエクスポート/インポート
+    function exportData() {
+      const cows = getCows();
+      const dataStr = JSON.stringify(cows, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cow_data_${dateUtil.format(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('データを出力しました', 'success');
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            saveCows(data);
+            refreshUI();
+            showToast('データを読み込みました', 'success');
+          } else {
+            showToast('無効なデータ形式です', 'error');
+          }
+        } catch (err) {
+          showToast('ファイル読み込みエラー', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // フォーム送信
     document.getElementById("cowForm").onsubmit = (e) => {
       e.preventDefault();
       const name = document.getElementById("cowName").value.trim();
       const date = document.getElementById("inseminationDate").value;
       const bull = document.getElementById("bullName").value.trim();
       
+      if (!name || !date) {
+        showToast('必須項目を入力してください', 'error');
+        return;
+      }
+      
       const cows = getCows();
       cows.push({ name, inseminationDate: date, bull, status: 'inseminated' });
       saveCows(cows);
       
-      showToast(`${name} を登録しました`);
       e.target.reset();
       refreshUI();
+      showToast(`「${name}」を登録しました`, 'success');
     };
 
-    // Modal
+    // モーダル制御
     function openModal(dateStr, dayEvents) {
       const overlay = document.getElementById("modalOverlay");
       const title = document.getElementById("modalDateTitle");
       const eventsDiv = document.getElementById("modalEvents");
 
-      const dt = dateUtil.parse(dateStr);
-      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][dt.getDay()];
-      title.textContent = `📅 ${dateStr} (${dayOfWeek})`;
+      title.textContent = `📅 ${dateStr}`;
       eventsDiv.innerHTML = "";
 
       if (dayEvents.length === 0) {
-        eventsDiv.innerHTML = "<p class='small' style='text-align:center;padding:20px;color:#9ca3af'>この日の予定はありません</p>";
+        eventsDiv.innerHTML = "<p class='small text-center' style='padding:20px'>この日の予定はありません</p>";
       } else {
         dayEvents.forEach(ev => {
-          const icon = ev.kind === 'preg-check' ? '🔬' : '🍼';
           const div = document.createElement("div");
           div.className = "event-item";
           div.innerHTML = `
-            <strong>${icon} ${ev.title}</strong><br>
-            <span class="small">対象牛: ${ev.cowName}</span>
+            <strong style="font-size:1.1rem">${ev.title}</strong><br>
+            <span class="small">🐄 対象牛: <strong>${ev.cowName}</strong></span>
             <div style="margin-top:12px">
-              <label class="small" style="font-weight:600">ステータス更新:</label>
-              <select onchange="updateStatus(${ev.cowIndex}, this.value); closeModal();">
-                <option value="">-- 選択してください --</option>
-                <option value="inseminated">授精済みに変更</option>
-                <option value="pregnant">妊娠中に変更</option>
-                <option value="open">空胎に変更</option>
+              <label class="small" style="margin-bottom:6px">ステータス更新:</label>
+              <select style="width:100%" onchange="updateStatus(${ev.cowIndex}, this.value); closeModal();">
+                <option value="">選択してください</option>
+                <option value="pregnant">✓ 妊娠確認</option>
+                <option value="open">✕ 空胎に変更</option>
               </select>
             </div>
           `;
@@ -1016,34 +1227,46 @@
       overlay.style.display = "flex";
     }
 
-    function closeModal() { 
-      document.getElementById("modalOverlay").style.display = "none"; 
+    function closeModal() {
+      document.getElementById("modalOverlay").style.display = "none";
     }
     document.getElementById("closeModal").onclick = closeModal;
-    document.getElementById("modalOverlay").onclick = (e) => {
-      if (e.target === e.currentTarget) closeModal();
-    };
 
-    // Calendar Navigation
-    document.getElementById("prevMonth").onclick = () => { 
-      currentViewDate.setMonth(currentViewDate.getMonth()-1); 
-      renderCalendar(); 
-    };
-    document.getElementById("nextMonth").onclick = () => { 
-      currentViewDate.setMonth(currentViewDate.getMonth()+1); 
-      renderCalendar(); 
-    };
-    document.getElementById("todayBtn").onclick = () => { 
-      currentViewDate = new Date(); 
+    // カレンダーナビゲーション
+    document.getElementById("prevMonth").onclick = () => {
+      currentViewDate.setMonth(currentViewDate.getMonth()-1);
       renderCalendar();
-      showToast('今月のカレンダーを表示しました');
+    };
+    
+    document.getElementById("nextMonth").onclick = () => {
+      currentViewDate.setMonth(currentViewDate.getMonth()+1);
+      renderCalendar();
+    };
+    
+    document.getElementById("todayBtn").onclick = () => {
+      currentViewDate = new Date();
+      renderCalendar();
+      showToast('今月のカレンダーを表示しました', 'success');
     };
 
-    // Set default date to today
-    document.getElementById("inseminationDate").valueAsDate = new Date();
+    // キーボードショートカット
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        closeConfirm(false);
+      }
+    });
 
-    // Initialize
+    // 初期起動時のアニメーション
+    window.addEventListener('load', () => {
+      refreshUI();
+      // 今日の授精日をデフォルトに設定
+      document.getElementById('inseminationDate').valueAsDate = new Date();
+    });
+
+    // 初期表示
     refreshUI();
   </script>
+
 </body>
 </html>
